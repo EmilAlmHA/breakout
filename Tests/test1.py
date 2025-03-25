@@ -37,9 +37,9 @@ def start_game():
     pass
 
 menu = pygame_menu.Menu('Welcome!', 400, 300, theme=pygame_menu.themes.THEME_BLUE)
+menu.add.button('Play', start_game)
 menu.add.text_input('Name: ', default='Change this...')
 menu.add.selector('Difficulty: ', [('Hard', 1), ('Medium', 2), ('Easy', 3), ('Baby', 4)], onchange=set_difficulty)
 menu.add.selector('Color', [('Red', 1), ('Green', 2), ('Blue', 3), ('White', 4), ('Black', 5)], onchange=set_color)
-menu.add.button('Play', start_game)
 menu.add.button('Quit', pygame_menu.events.EXIT)
 menu.mainloop(surface)
