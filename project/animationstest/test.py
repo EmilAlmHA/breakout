@@ -16,9 +16,9 @@ class GameObject:
 pygame.init()
 screen = pygame.display.set_mode((640, 480))
 clock = pygame.time.Clock()            #get a pygame clock object
-player = pygame.image.load('player.bmp').convert()
-entity = pygame.image.load('alien1.bmp').convert()
-background = pygame.image.load('background.bmp').convert()
+player = pygame.image.load('./project/animationstest/player.bmp').convert()
+entity = pygame.image.load('./project/animationstest/alien1.bmp').convert()
+background = pygame.image.load('./project/animationstest/background.bmp').convert()
 screen.blit(background, (0, 0))
 objects = []
 p = GameObject(player, 10, 3)          #create the player object
