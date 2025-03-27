@@ -1,12 +1,13 @@
-import os
 import pygame
 import sys
 
 class GameObject:
-    def __init__(self, image, height, speed):
+    def __init__(self, width, height, speed):
         self.speed = speed
-        self.image = image
-        self.pos = image.get_rect().move(0, height)
+        self.width = width
+        self.height = height
+        self.pos = pygame.Rect(0, height, self.width, 20)  # Balken är 20 pixlar hög
+        self.color = (255, 255, 255)  # Vit färg för balken
 
     def move(self, direction=None):
         if direction == "up":
@@ -18,36 +19,30 @@ class GameObject:
         elif direction == "right":
             self.pos.left += self.speed
 
-        if self.pos.right > 960:
-            self.pos.left = 360
-        elif self.pos.left < 0:
-            self.pos.left = 360
+        # Begränsa rörelse så att spelaren inte går utanför skärmen
+        if self.pos.left < 0:
+            self.pos.left = 0
+        if self.pos.right > 640:
+            self.pos.right = 640
+
+    def draw(self, screen):
+        # Rita en rektangel istället för en bild (en balk med bindestreck)
+        pygame.draw.rect(screen, self.color, self.pos)
 
 class Game:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((960, 720))
+        self.screen = pygame.display.set_mode((640, 480))
         self.clock = pygame.time.Clock()
         
-        # Get the current directory path
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.background_path = os.path.join(current_dir, 'background.bmp')
-        self.player_image_path = os.path.join(current_dir, 'player.bmp')
-        self.entity_image_path = os.path.join(current_dir, 'alien1.bmp')
-
-        # Load the image using the full path
-        self.background = pygame.image.load(self.background_path).convert()
-        self.player_image = pygame.image.load(self.player_image_path).convert()
-        self.entity_image = pygame.image.load(self.entity_image_path).convert()
-        
-        # Create player and objects
-        self.player = GameObject(self.player_image, 10, 3)
+        self.player = GameObject(100, 10, 5)  # Balken är 100 pixlar lång och 10 pixlar hög
         self.objects = []
         self.create_objects()
 
     def create_objects(self):
         for x in range(10):
-            o = GameObject(self.entity_image, x * 40, x)
+            o = GameObject(40, 10, 0)  # Skapa objekt (hinder eller monster)
+            o.pos = pygame.Rect(x * 60, 100, 40, 20)  # Placera ut objekten
             self.objects.append(o)
 
     def handle_events(self):
@@ -66,18 +61,20 @@ class Game:
         if keys[pygame.K_RIGHT]:
             self.player.move("right")
         
-        # Move all objects
+        # Flytta objekt (om du har rörliga objekt)
         for obj in self.objects:
             obj.move()
 
     def draw(self):
-        # Draw background first to avoid overwriting objects
-        self.screen.blit(self.background, (0, 0))
-        self.screen.blit(self.player.image, self.player.pos)
-        
-        # Draw all objects
+        # Rita bakgrunden (kan vara en solid färg eller en bild)
+        self.screen.fill((0, 0, 0))  # Svart bakgrund
+
+        # Rita alla objekt
         for obj in self.objects:
-            self.screen.blit(obj.image, obj.pos)
+            obj.draw(self.screen)
+
+        # Rita spelarbalken (bestående av bindestreck)
+        self.player.draw(self.screen)
         
         pygame.display.update()
 
@@ -88,6 +85,6 @@ class Game:
             self.draw()
             self.clock.tick(60)
 
-# Initialize and run the game
+# Starta och kör spelet
 game = Game()
 game.run()
