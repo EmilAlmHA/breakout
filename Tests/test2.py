@@ -1,7 +1,7 @@
 import pygame
 import sys
 import pygame_menu
-
+import pygame.locals
 
 pygame.init()
 surface = pygame.display.set_mode((800, 534))
@@ -9,10 +9,18 @@ surface = pygame.display.set_mode((800, 534))
 pygame.display.set_caption('Testing')
 clock = pygame.time.Clock()
 font = pygame.font.Font(None, 50)
-player_lenght = '---'
+player_lenght = 50
 hill = pygame.image.load('Tests/Success-Story-KANAGWA-1.png')
-text_surface = font.render(f'{player_lenght}', False, 'Yellow')
-text_x_pos = 400
+ball = pygame.image.load('Tests/volleyball-ball.png')
+ball = pygame.transform.scale(ball, (20, 20))
+player = pygame.image.load('Tests/longcat90.jpg')
+player = pygame.transform.scale(player, (40, player_lenght))
+player = pygame.transform.rotate(player, (90))
+
+# text_surface = font.render(f'{player_lenght}', False, 'Yellow')
+# player_x_pos = 400
+ball_x_pos = 
+player_x_pos = 400
 movement = False
 
 # Color definitions (ensure these are correctly defined)
@@ -61,10 +69,19 @@ def get_move():
 
         elif i.event == pygame.KEYUP:
             movement = False
+def ball_launch():
+    movement = True
+    ball = ball_x_pos + 20
+
 
 def start_game():
-    global player_lenght, text_surface, text_x_pos, current_color
+    global player_lenght, player, player_x_pos, current_color
+    pygame.event.set_blocked(pygame.MOUSEMOTION)
+
     
+    #barrier = pygame.rect(0, 0, 800, 534)
+    #player.clamp_ip(barrier)
+
     while True:
         for event in pygame.event.get():
             get_move()
@@ -73,13 +90,12 @@ def start_game():
                 sys.exit()
 
             if keys[pygame.K_UP]:
-                player_lenght += '-'
-                text_surface = font.render(f'{player_lenght}', False, current_color)
+                ball_launch()
                 print('Up')
 
             if keys[pygame.K_DOWN]:
-                player_lenght = player_lenght[:-1]
-                text_surface = font.render(f'{player_lenght}', False, current_color)
+                player_lenght -= 20
+                player = pygame.transform.scale(player, (player_lenght, 40))
                 print('Down')
 
 
@@ -90,16 +106,16 @@ def start_game():
 
             
         if keys[pygame.K_LEFT]:
-            text_x_pos -= 10
-            if text_x_pos <= 0:
-                text_x_pos = 1
+            player_x_pos -= 10
+            if player_x_pos <= 0:
+                player_x_pos = 1
             print('Left')
 
 
         if keys[pygame.K_RIGHT]:
-            text_x_pos += 10
-            if text_x_pos >= 770:
-                text_x_pos = 770
+            player_x_pos += 10
+            if player_x_pos >= 770:
+                player_x_pos = 770
             print('Right')
 
     
@@ -107,9 +123,14 @@ def start_game():
 
 
         surface.blit(hill, (0, 0))
-        surface.blit(text_surface, (text_x_pos, 250))
+        surface.blit(player, (player_x_pos, 400))   
+        surface.blit(ball, (player_x_pos + 20, 380))
         pygame.display.update()
         clock.tick(60)
 
 
 menu()
+
+
+# player_lenght += 20
+# player = pygame.transform.scale(player, (player_lenght, 40))

@@ -1,11 +1,14 @@
 import pygame
 import sys
+import random
 
 pygame.init()
 
+clock = pygame.time.Clock()
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+screen = pygame.image.load('project/animationstest/Success-Story-KANAGWA-1.png')
 bigfont = pygame.font.Font(None, 80)
 smallfont = pygame.font.Font(None, 45)
 
@@ -57,8 +60,8 @@ class Ball:
         # Bounce off paddle
         if self.pos.colliderect(paddle.pos):
             self.speed_y = -self.speed_y
-            self.speed_x += 0.3
-            self.speed_y += - 1
+            self.speed_x += random.uniform(0.2, 0.8)
+            self.speed_y += random.uniform(-0.8, -0.2)
 
         # bounce off objects
         for obj in game.objects:
@@ -69,6 +72,7 @@ class Ball:
         pygame.draw.ellipse(screen, self.color, self.pos)
 
 class Game:
+
     def __init__(self):
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.clock = pygame.time.Clock()
@@ -115,7 +119,8 @@ class Game:
             sys.exit()
 
     def draw(self):
-        self.screen.fill((0, 0, 0))
+        #self.screen.fill((0, 0, 0))
+        surface.blit(screen, (-75, 0))
         for obj in self.objects:
             obj.draw(self.screen)
         self.player.draw(self.screen)
@@ -146,10 +151,15 @@ class Game:
 
     def run(self):
         while True:
+            
+            pygame.display.update()
             self.handle_events()
             self.update()
             self.draw()
             self.clock.tick(60)
+            
+            
+    
 
 game = Game()
 game.run()
