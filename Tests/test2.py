@@ -10,16 +10,16 @@ pygame.display.set_caption('Testing')
 clock = pygame.time.Clock()
 font = pygame.font.Font(None, 50)
 player_lenght = 50
-hill = pygame.image.load('Tests/Success-Story-KANAGWA-1.png')
-ball = pygame.image.load('Tests/volleyball-ball.png')
+hill = pygame.image.load('Success-Story-KANAGWA-1.png')
+ball = pygame.image.load('volleyball-ball.png')
 ball = pygame.transform.scale(ball, (20, 20))
-player = pygame.image.load('Tests/longcat90.jpg')
+player = pygame.image.load('longcat90.jpg')
 player = pygame.transform.scale(player, (40, player_lenght))
 player = pygame.transform.rotate(player, (90))
 
 # text_surface = font.render(f'{player_lenght}', False, 'Yellow')
 # player_x_pos = 400
-ball_x_pos = 
+ball_x_pos = 200
 player_x_pos = 400
 movement = False
 
