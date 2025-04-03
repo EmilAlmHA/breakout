@@ -9,6 +9,9 @@ SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
 surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 screen = pygame.image.load('project/animationstest/Success-Story-KANAGWA-1.png')
+# cat = pygame.image.load('project/animationstest/longcat90.jpg')
+# cat = pygame.transform.scale(player, (40, player_lenght))
+# cat = pygame.transform.rotate(player, (90))
 bigfont = pygame.font.Font(None, 80)
 smallfont = pygame.font.Font(None, 45)
 
