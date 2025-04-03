@@ -17,11 +17,11 @@ smallfont = pygame.font.Font(None, 45)
 difficulty = 2
 ball_color = (255, 0, 0)
 
-def set_difficulty(value, difficulty_level):
+def set_difficulty( difficulty_level):
     global difficulty
     difficulty = difficulty_level
 
-def set_color(value, color_index):
+def set_color(color_index):
     global ball_color
     colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 255), (0, 0, 0)]
     ball_color = colors[color_index - 1]
