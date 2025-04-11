@@ -17,6 +17,7 @@ player = pygame.image.load('longcat90.jpg')
 player = pygame.transform.scale(player, (40, player_lenght))
 player = pygame.transform.rotate(player, (90))
 
+
 # text_surface = font.render(f'{player_lenght}', False, 'Yellow')
 # player_x_pos = 400
 ball_x_pos = 200
@@ -72,6 +73,7 @@ def get_move():
 def ball_launch():
     movement = True
     ball = ball_x_pos + 20
+    
 
 
 def start_game():
