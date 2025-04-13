@@ -1,7 +1,9 @@
 import pygame
 import sys
+import random
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, WHITE, BLACK
 from game_objects import GameObject, Ball
+from maps import MAP_TEMPLATE, BLOCK_TYPES  # Ensure BLOCK_TYPES is defined in maps.py
 
 class Game:
     def __init__(self, ball_color, difficulty):
@@ -13,16 +15,30 @@ class Game:
 
         self.player = GameObject(0, int(SCREEN_HEIGHT * 0.8), 100, 20, WHITE, 5)
         self.objects_group = pygame.sprite.Group()
-        self.create_objects()
+
+        # Load the map template
+        self.load_map(MAP_TEMPLATE)
 
         # Use the selected ball color and difficulty
         self.ball = Ball(200, 200, difficulty, difficulty, 10, ball_color)
 
-    def create_objects(self):
-        spacing = (SCREEN_WIDTH - 10 * 40) // (10 + 1)
-        for x in range(10):
-            obj = GameObject(spacing + x * (40 + spacing), 100, 40, 20, WHITE)
-            self.objects_group.add(obj)
+    def load_map(self, template):
+        """Generate blocks based on the map template."""
+        block_width = SCREEN_WIDTH // len(template[0])  # Calculate block width
+        block_height = 20  # Fixed block height
+
+        for row_index, row in enumerate(template):
+            for col_index, cell in enumerate(row):
+                if cell == -1:  # Random block
+                    cell = random.choice(list(BLOCK_TYPES.keys()))  # Randomly choose a block type
+                if cell in BLOCK_TYPES:  # If the cell represents a valid block type
+                    block_type = BLOCK_TYPES[cell]
+                    x = col_index * block_width
+                    y = row_index * block_height
+                    block = GameObject(
+                        x, y, block_width, block_height, block_type["color"]
+                    )
+                    self.objects_group.add(block)
 
     def handle_events(self):
         for event in pygame.event.get():
