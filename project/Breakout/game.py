@@ -23,7 +23,7 @@ class Game:
         self.ball = Ball(200, 200, difficulty, difficulty, 10, ball_color)
 
     def load_map(self, template):
-        """Generate blocks based on the map template."""
+        # Generate blocks based on the map template.
         block_width = SCREEN_WIDTH // len(template[0])  # Calculate block width
         block_height = 20  # Fixed block height
 
