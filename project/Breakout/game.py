@@ -4,6 +4,10 @@ import random
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, WHITE, BLACK
 from game_objects import GameObject, Ball
 from maps import MAP_TEMPLATE, BLOCK_TYPES  # Ensure BLOCK_TYPES is defined in maps.py
+import pygame_menu
+
+global pause 
+pause = False
 
 class Game:
     def __init__(self, ball_color, difficulty):
@@ -13,7 +17,7 @@ class Game:
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.clock = pygame.time.Clock()
 
-        self.player = GameObject(0, int(SCREEN_HEIGHT * 0.8), 100, 20, WHITE, 5)
+        self.player = GameObject(320, int(SCREEN_HEIGHT * 0.8), 100, 20, WHITE, 5)
         self.objects_group = pygame.sprite.Group()
 
         # Load the map template
@@ -53,6 +57,9 @@ class Game:
             self.player.move("left", SCREEN_WIDTH)
         if keys[pygame.K_RIGHT]:
             self.player.move("right", SCREEN_WIDTH)
+        """if keys[pygame.K_SPACE]:
+            pause = True
+            Paused()"""
 
         self.ball.move(self.player, self.objects_group)
 
@@ -94,3 +101,18 @@ class Game:
             self.update()
             self.draw()
             self.clock.tick(60)
+    
+    """def Paused(self, ball_color):
+        menu = pygame_menu.Menu('Paused', 400, 300, theme=pygame_menu.themes.THEME_BLUE)
+
+        while pause:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+
+        menu.add.button("Continue", 150, 450, 100, 50, (0,255,0), (0,125,0), unpause)
+        menu.add.button('Quit', pygame_menu.events.EXIT)
+        pygame.display.update()
+        
+        """

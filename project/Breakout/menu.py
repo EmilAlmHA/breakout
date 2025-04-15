@@ -7,13 +7,13 @@ from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BALL_COLORS
 difficulty = 2
 ball_color = BALL_COLORS[0]
 
-def set_difficulty(difficulty_level):
+def set_difficulty(difficulty_level, set_difficulty):
     global difficulty
-    difficulty = difficulty_level
+    difficulty = set_difficulty
 
-def set_color(color_index):
+def set_color(color_index, set_color):
     global ball_color
-    ball_color = BALL_COLORS[color_index - 1]
+    ball_color = BALL_COLORS[set_color - 1]
 
 def start_game():
     game = Game(ball_color, difficulty)
