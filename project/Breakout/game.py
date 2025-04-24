@@ -24,7 +24,9 @@ class Game:
         self.load_map(MAP_TEMPLATE)
 
         # Use the selected ball color and difficulty
-        self.ball = Ball(200, 200, difficulty, difficulty, 10, ball_color)
+        self.balls = pygame.sprite.Group()
+        self.balls = [Ball(200, 200, difficulty, difficulty, 10, ball_color)]
+        self.balls.add(ball)
 
         self.score = 0 # Initialize score for current run
         self.high_score = self.load_high_score() # Load high score from highscore.txt
@@ -38,12 +40,18 @@ class Game:
             for col_index, cell in enumerate(row):
                 if cell == -1:  # Random block
                     cell = random.choice(list(BLOCK_TYPES.keys()))  # Randomly choose a block type
+                
                 if cell in BLOCK_TYPES:  # If the cell represents a valid block type
                     block_type = BLOCK_TYPES[cell]
                     x = col_index * block_width
                     y = row_index * block_height
                     block = GameObject(
-                        x, y, block_width, block_height, block_type["color"]
+                        x, y, 
+                        block_width, 
+                        block_height, 
+                        block_type["color"],
+                        durability=block_type.get("durability", 1)
+                        modifiers={k: v for k, v in block_type.items() if k not in ["color", "durability"]}
                     )
                     self.objects_group.add(block)
 
@@ -85,6 +93,30 @@ class Game:
                         sys.exit()
                         
 
+    def explode_blocks(self, block):
+        """Destroy adjacent blocks."""
+        for other_block in self.objects_group:
+            if abs(other_block.rect.x - block.rect.x) <= other_block.rect.width and \
+               abs(other_block.rect.y - block.rect.y) <= other_block.rect.height:
+                self.objects_group.remove(other_block)
+
+    def enlarge_paddle(self):
+        """Increase the paddle size."""
+        self.player.rect.width += 50
+        self.player.image = pygame.Surface((self.player.rect.width, self.player.rect.height))
+        self.player.image.fill(WHITE)
+
+    def spawn_ball(self):
+        """Spawn an additional ball."""
+        if self.balls:  # Ensure there is at least one ball to reference
+            reference_ball = self.balls[0]
+            new_ball = Ball(
+                reference_ball.rect.x, reference_ball.rect.y,  # Use the position of an existing ball
+                random.choice([-3, 3]), random.choice([-3, 3]),  # Random speed
+                10, self.ball_color
+            )
+            self.balls.append(new_ball)  # Add the new ball to the list of balls
+
     def update(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
@@ -94,19 +126,34 @@ class Game:
         if keys[pygame.K_SPACE]:
             self.wait()
 
-            
-        self.ball.move(self.player, self.objects_group)
+        for ball in self.balls:
+            new_ball = ball.move(self.player, self.objects_group)
+            if new_ball:
+                self.balls.add(new_ball)
 
          # Check for collisions with blocks
-        collided_objects = pygame.sprite.spritecollide(self.ball, self.objects_group, True, pygame.sprite.collide_mask)
+        collided_objects = pygame.sprite.spritecollide(ball, self.objects_group, True, pygame.sprite.collide_mask)
         if collided_objects:
-            self.score += len(collided_objects) * 10  # Increment score by 10 per block destroyed
-            print(f"Score updated: {self.score}")  # Debugging output to verify score updates
+            self.score += 10  # Increment score by 10 per block destroyed
             if self.score > self.high_score:
                 self.high_score = self.score  # Update high score if necessary
 
-        # Game over condition
-        if self.ball.rect.bottom >= SCREEN_HEIGHT:
+        # Handle block effects
+        for block in collided_objects:
+            if hasattr(block, "effect"):
+                if block.effect == "explosive":
+                    self.explode_blocks(block)
+                elif block.effect == "paddle_enlarge":
+                    self.enlarge_paddle()
+                elif block.effect == "spawn_ball":
+                    self.spawn_ball()
+
+        # Remove balls that leave the screen
+        self.balls = [ball for ball in self.balls if ball.rect.bottom < SCREEN_HEIGHT]
+
+
+        # Game over condition: no balls left
+        if not self.balls:
             print("Game Over!")
             self.play_again()
             pygame.time.wait(2000)
@@ -116,7 +163,11 @@ class Game:
         self.screen.fill(BLACK)
         self.objects_group.draw(self.screen)
         self.screen.blit(self.player.image, self.player.rect)
-        self.screen.blit(self.ball.image, self.ball.rect)
+
+        # Draw all balls
+        for ball in self.balls:
+            self.screen.blit(ball.image, ball.rect)
+
         # Display the current score
         score_text = SMALL_FONT.render(f"Score: {self.score}", True, WHITE)
         self.screen.blit(score_text, (10, 10))  # Position at the top-left corner
