@@ -151,6 +151,9 @@ class Game:
                     if event.key == pygame.K_r:  # Restart the game
                         self.__init__(self.ball_color, self.difficulty)  # Reinitialize the game with stored values
                         self.run()  # Restart the game loop
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        sys.exit()
 
     def run(self):
         while True:
