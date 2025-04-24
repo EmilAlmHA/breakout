@@ -5,6 +5,7 @@ from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, WHITE, B
 from game_objects import GameObject, Ball
 from maps import MAP_TEMPLATE, BLOCK_TYPES  # Ensure BLOCK_TYPES is defined in maps.py
 import pygame_menu
+import os
 import pygame.locals
 
 
@@ -24,6 +25,9 @@ class Game:
 
         # Use the selected ball color and difficulty
         self.ball = Ball(200, 200, difficulty, difficulty, 10, ball_color)
+
+        self.score = 0 # Initialize score for current run
+        self.high_score = self.load_high_score() # Load high score from highscore.txt
 
     def load_map(self, template):
         # Generate blocks based on the map template.
@@ -49,6 +53,18 @@ class Game:
                 sys.exit()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 sys.exit()
+
+    def load_high_score(self):
+        """Load the high score from a file."""
+        if os.path.exists("highscore.txt"):
+            with open("highscore.txt", "r") as file:
+                return int(file.read())
+        return 0
+
+    def save_high_score(self):
+        """Save the high score to a file."""
+        with open("highscore.txt", "w") as file:
+            file.write(str(self.high_score))
 
     def wait(self):
         text = SMALL_FONT.render('Paused, press P KEY to continue', True, BLACK)
@@ -81,6 +97,14 @@ class Game:
             
         self.ball.move(self.player, self.objects_group)
 
+         # Check for collisions with blocks
+        collided_objects = pygame.sprite.spritecollide(self.ball, self.objects_group, True, pygame.sprite.collide_mask)
+        if collided_objects:
+            self.score += len(collided_objects) * 10  # Increment score by 10 per block destroyed
+            print(f"Score updated: {self.score}")  # Debugging output to verify score updates
+            if self.score > self.high_score:
+                self.high_score = self.score  # Update high score if necessary
+
         # Game over condition
         if self.ball.rect.bottom >= SCREEN_HEIGHT:
             print("Game Over!")
@@ -93,6 +117,13 @@ class Game:
         self.objects_group.draw(self.screen)
         self.screen.blit(self.player.image, self.player.rect)
         self.screen.blit(self.ball.image, self.ball.rect)
+        # Display the current score
+        score_text = SMALL_FONT.render(f"Score: {self.score}", True, WHITE)
+        self.screen.blit(score_text, (10, 10))  # Position at the top-left corner
+
+        # Display the high score
+        high_score_text = SMALL_FONT.render(f"High Score: {self.high_score}", True, WHITE)
+        self.screen.blit(high_score_text, (10, 50))  # Position below the score
         pygame.display.update()
 
     def play_again(self):
