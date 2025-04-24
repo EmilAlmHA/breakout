@@ -25,7 +25,7 @@ class Game:
 
         # Use the selected ball color and difficulty
         self.balls = pygame.sprite.Group()
-        self.balls = [Ball(200, 200, difficulty, difficulty, 10, ball_color)]
+        ball = [Ball(200, 200, difficulty, difficulty, 10, ball_color)]
         self.balls.add(ball)
 
         
@@ -50,7 +50,7 @@ class Game:
                         block_width, 
                         block_height, 
                         block_type["color"],
-                        durability=block_type.get("durability", 1)
+                        durability=block_type.get("durability", 1),
                         modifiers={k: v for k, v in block_type.items() if k not in ["color", "durability"]}
                     )
                     self.objects_group.add(block)
@@ -128,50 +128,52 @@ class Game:
         if keys[pygame.K_SPACE]:
             self.wait()
 
+        new_balls = pygame.sprite.Group()
         for ball in self.balls:
-            new_ball = ball.move(self.player, self.objects_group)
-            if new_ball:
-                self.balls.add(new_ball)
+            spawned_ball = ball.move(self.player, self.objects_group)
+            if spawned_ball:
+                new_balls.add(spawned_ball)
 
-         # Check for collisions with blocks
-        collided_objects = pygame.sprite.spritecollide(self.ball, self.objects_group, True, pygame.sprite.collide_mask)
-        self.score = 0 # Initialize score for current run
-        if collided_objects != self.objects_group:
-            self.score = ((len(collided_objects) - len(self.objects_group) ) + 38) * 10 # Increment score by 10 per block destroyed
-            # print(f"Score updated: {self.score}")  # Debugging output to verify score updates
-            if self.score > self.high_score:
-                self.save_high_score()
-                # self.high_score = self.score  # Update high score if necessary
+        self.balls.add(new_balls)
 
-        
+        self.score = 0  # Initialize score for current run
 
-        # Handle block effects
-        for block in collided_objects:
-            if hasattr(block, "effect"):
-                if block.effect == "explosive":
-                    self.explode_blocks(block)
-                elif block.effect == "paddle_enlarge":
-                    self.enlarge_paddle()
-                elif block.effect == "spawn_ball":
-                    self.spawn_ball()
+        # Check for collisions for each ball individually
+        for ball in self.balls:
+            collided_objects = pygame.sprite.spritecollide(ball, self.objects_group, False, pygame.sprite.collide_mask)
+            for block in collided_objects:
+                if hasattr(block, "durability"):
+                    block.durability -= 1
+                    if block.durability <= 0:
+                        if block.modifiers.get("spawn_ball"):
+                            new_ball = Ball(ball.rect.centerx, ball.rect.centery, -ball.speed_x, -ball.speed_y, 10, ball.image.get_at((0, 0)))
+                            self.balls.add(new_ball)
+                        self.objects_group.remove(block)
+                    else:
+                        block.update_appearance()
+                ball.speed_y = -ball.speed_y
 
-        # Remove balls that leave the screen
-        self.balls = [ball for ball in self.balls if ball.rect.bottom < SCREEN_HEIGHT]
+        # Remove balls that fall off the screen
+        for ball in list(self.balls):
+            if ball.rect.bottom >= SCREEN_HEIGHT:
+                self.balls.remove(ball)
 
-
-        # Game over condition: no balls left
-        if not self.balls:
+        # Game over if no balls remain
+        if len(self.balls) == 0:
             print("Game Over!")
             self.play_again()
             pygame.time.wait(2000)
             sys.exit()
+
         pygame.display.update()
+
 
     def draw(self):
         self.screen.fill(BLACK)
         self.objects_group.draw(self.screen)
         self.screen.blit(self.player.image, self.player.rect)
-        self.screen.blit(self.ball.image, self.ball.rect)
+        self.balls.draw(self.screen)
+
         # Display the current score
         score_text = SMALL_FONT.render(f"Score: {self.score}", True, WHITE)
         self.screen.blit(score_text, (10, 10))  # Position at the top-left corner
