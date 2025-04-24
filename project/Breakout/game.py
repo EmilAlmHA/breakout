@@ -1,7 +1,7 @@
 import pygame
 import sys
 import random
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, WHITE, BLACK, RED, GREEN, BLUE
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, SMALL_SMALL_FONT, WHITE, BLACK, RED, GREEN, BLUE
 from game_objects import GameObject, Ball
 from maps import MAP_TEMPLATE, BLOCK_TYPES  # Ensure BLOCK_TYPES is defined in maps.py
 import pygame_menu
@@ -26,7 +26,7 @@ class Game:
         # Use the selected ball color and difficulty
         self.ball = Ball(200, 200, difficulty, difficulty, 10, ball_color)
 
-        self.score = 0 # Initialize score for current run
+        
         self.high_score = self.load_high_score() # Load high score from highscore.txt
 
     def load_map(self, template):
@@ -62,12 +62,14 @@ class Game:
         return 0
 
     def save_high_score(self):
-        """Save the high score to a file."""
-        with open("highscore.txt", "w") as file:
-            file.write(str(self.high_score))
+        if self.score > self.high_score:
+            self.high_score = self.score
+            """Save the high score to a file."""
+            with open("highscore.txt", "w") as file:
+                file.write(str(self.high_score))
 
     def wait(self):
-        text = SMALL_FONT.render('Paused, press P KEY to continue', True, BLACK)
+        text = SMALL_FONT.render('Paused, press UP KEY to continue', True, BLACK)
         textx = SCREEN_WIDTH / 2 - text.get_width() / 2
         texty = SCREEN_HEIGHT / 2 - text.get_height() / 2
         pygame.draw.rect(self.screen, WHITE, ((textx - 5, texty - 5), (text.get_width() + 10, text.get_height() + 10)))
@@ -78,10 +80,10 @@ class Game:
                 if event.type == pygame.QUIT:
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_UP:  # Restart the game
-                        self.run()  # Restart the game loop
+                    if event.key == pygame.K_UP:  # start the game
+                        self.run()  # start the game loop
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:  # Restart the 
+                    if event.key == pygame.K_ESCAPE:  # Exit game
                         sys.exit()
                         
 
@@ -99,11 +101,15 @@ class Game:
 
          # Check for collisions with blocks
         collided_objects = pygame.sprite.spritecollide(self.ball, self.objects_group, True, pygame.sprite.collide_mask)
-        if collided_objects:
-            self.score += len(collided_objects) * 10  # Increment score by 10 per block destroyed
-            print(f"Score updated: {self.score}")  # Debugging output to verify score updates
+        self.score = 0 # Initialize score for current run
+        if collided_objects != self.objects_group:
+            self.score = ((len(collided_objects) - len(self.objects_group) ) + 38) * 10 # Increment score by 10 per block destroyed
+            # print(f"Score updated: {self.score}")  # Debugging output to verify score updates
             if self.score > self.high_score:
-                self.high_score = self.score  # Update high score if necessary
+                self.save_high_score()
+                # self.high_score = self.score  # Update high score if necessary
+
+        
 
         # Game over condition
         if self.ball.rect.bottom >= SCREEN_HEIGHT:
@@ -111,19 +117,21 @@ class Game:
             self.play_again()
             pygame.time.wait(2000)
             sys.exit()
+        pygame.display.update()
 
     def draw(self):
         self.screen.fill(BLACK)
         self.objects_group.draw(self.screen)
         self.screen.blit(self.player.image, self.player.rect)
         self.screen.blit(self.ball.image, self.ball.rect)
-        # Display the current score
-        score_text = SMALL_FONT.render(f"Score: {self.score}", True, WHITE)
+        
+        score_text = SMALL_SMALL_FONT.render(f"Score: {self.score}", True, GREEN)
         self.screen.blit(score_text, (10, 10))  # Position at the top-left corner
 
         # Display the high score
-        high_score_text = SMALL_FONT.render(f"High Score: {self.high_score}", True, WHITE)
-        self.screen.blit(high_score_text, (10, 50))  # Position below the score
+        high_score_text = SMALL_SMALL_FONT.render(f"High Score: {self.high_score}", True, GREEN)
+        self.screen.blit(high_score_text, (10, 25))  # Position below the score
+        
         pygame.display.update()
 
     def play_again(self):
