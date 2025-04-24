@@ -1,13 +1,12 @@
 import pygame
 import sys
 import random
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, WHITE, BLACK
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, WHITE, BLACK, RED, GREEN, BLUE
 from game_objects import GameObject, Ball
 from maps import MAP_TEMPLATE, BLOCK_TYPES  # Ensure BLOCK_TYPES is defined in maps.py
 import pygame_menu
+import pygame.locals
 
-global pause 
-pause = False
 
 class Game:
     def __init__(self, ball_color, difficulty):
@@ -51,16 +50,35 @@ class Game:
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 sys.exit()
 
+    def wait(self):
+        text = SMALL_FONT.render('Paused, press P KEY to continue', True, BLACK)
+        textx = SCREEN_WIDTH / 2 - text.get_width() / 2
+        texty = SCREEN_HEIGHT / 2 - text.get_height() / 2
+        pygame.draw.rect(self.screen, WHITE, ((textx - 5, texty - 5), (text.get_width() + 10, text.get_height() + 10)))
+        self.screen.blit(text, (textx, texty))
+        pygame.display.update()
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:  # Restart the game
+                        self.run()  # Restart the game loop
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:  # Restart the 
+                        sys.exit()
+                        
+
     def update(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             self.player.move("left", SCREEN_WIDTH)
         if keys[pygame.K_RIGHT]:
             self.player.move("right", SCREEN_WIDTH)
-        """if keys[pygame.K_SPACE]:
-            pause = True
-            Paused()"""
+        if keys[pygame.K_SPACE]:
+            self.wait()
 
+            
         self.ball.move(self.player, self.objects_group)
 
         # Game over condition
@@ -102,17 +120,27 @@ class Game:
             self.draw()
             self.clock.tick(60)
     
-    """def Paused(self, ball_color):
-        menu = pygame_menu.Menu('Paused', 400, 300, theme=pygame_menu.themes.THEME_BLUE)
+    """
+    def paused(self):
 
-        while pause:
+        largeText = pygame.font.SysFont("comicsansms",115)
+        TextSurf, TextRect = BIG_FONT("Paused", largeText)
+        TextRect.center = ((SCREEN_WIDTH/2),(SCREEN_HEIGHT/2))
+        self.screen.blit(TextSurf, TextRect)
+    
+
+        while paused:
             for event in pygame.event.get():
+
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     quit()
-
-        menu.add.button("Continue", 150, 450, 100, 50, (0,255,0), (0,125,0), unpause)
-        menu.add.button('Quit', pygame_menu.events.EXIT)
-        pygame.display.update()
+                
+        #gameDisplay.fill(white)
         
-        """
+
+            largeText.add.button("Continue",150,450,100,50,GREEN, pygame.run)
+            largeText.add.button("Quit",550,450,100,50,RED, sys.exit())
+
+            pygame.display.update()
+            """
