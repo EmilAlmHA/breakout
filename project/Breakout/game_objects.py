@@ -3,13 +3,32 @@ import random
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
 class GameObject(pygame.sprite.Sprite):
-    def __init__(self, x, y, width, height, color, speed=0):
+    def __init__(self, x, y, width, height, color, speed=0, durability=1, modifiers=None):
         super().__init__()
         self.image = pygame.Surface((width, height))
         self.image.fill(color)
         self.rect = self.image.get_rect(topleft=(x, y))
         self.speed = speed
+        self.durability = durability
         self.mask = pygame.mask.from_surface(self.image)
+
+        self.color = color
+        self.base_color = color
+        self.modifiers = modifiers or {}
+
+        if self.durability is not None:
+            self.update_appearance()
+        else:
+            self.image.fill(color)
+
+
+    def update_appearance(self):
+        # Reverse the brightness: higher durability = darker
+        max_durability = 3  # Adjust this if your blocks can go higher
+        darkness_factor = max(0.3, 1 - (self.durability - 1) / (max_durability - 1))
+        faded_color = tuple(int(c * darkness_factor) for c in self.base_color)
+        self.image.fill(faded_color)
+
 
     def move(self, direction=None, screen_width=SCREEN_WIDTH):
         if direction == "left":
@@ -51,7 +70,13 @@ class Ball(pygame.sprite.Sprite):
             self.speed_y += random.uniform(-0.8, -0.2)
 
         # Bounce off objects
-        collided_objects = pygame.sprite.spritecollide(self, objects_group, True, pygame.sprite.collide_mask)
-        if collided_objects:
+        collided_objects = pygame.sprite.spritecollide(self, objects_group, False, pygame.sprite.collide_mask)
+        for obj in collided_objects:
+            if hasattr(obj, "durability"):
+                obj.durability -= 1
+                if obj.durability <= 0:
+                    objects_group.remove(obj)
+                else:
+                    obj.update_appearance()
             self.speed_y = -self.speed_y
 
