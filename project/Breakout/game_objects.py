@@ -69,14 +69,4 @@ class Ball(pygame.sprite.Sprite):
             self.speed_x += random.uniform(0.2, 0.8)
             self.speed_y += random.uniform(-0.8, -0.2)
 
-        # Bounce off objects
-        collided_objects = pygame.sprite.spritecollide(self, objects_group, False, pygame.sprite.collide_mask)
-        for obj in collided_objects:
-            if hasattr(obj, "durability"):
-                obj.durability -= 1
-                if obj.durability <= 0:
-                    objects_group.remove(obj)
-                else:
-                    obj.update_appearance()
-            self.speed_y = -self.speed_y
 

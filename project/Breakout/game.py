@@ -28,7 +28,7 @@ class Game:
         ball = [Ball(200, 200, difficulty, difficulty, 10, ball_color)]
         self.balls.add(ball)
 
-        
+        self.score = 0  # Initialize score for current run
         self.high_score = self.load_high_score() # Load high score from highscore.txt
 
     def load_map(self, template):
@@ -136,31 +136,36 @@ class Game:
 
         self.balls.add(new_balls)
 
-        self.score = 0  # Initialize score for current run
-
-        # Check for collisions for each ball individually
         for ball in self.balls:
             collided_objects = pygame.sprite.spritecollide(ball, self.objects_group, False, pygame.sprite.collide_mask)
             for block in collided_objects:
                 if hasattr(block, "durability"):
                     block.durability -= 1
                     if block.durability <= 0:
-                        if block.modifiers.get("spawn_ball"):
+                        score_gain = block.modifiers.get("score", 10)
+                        self.score += score_gain
+
+                        effect = block.modifiers.get("effect")
+                        if effect == "spawn_ball":
                             new_ball = Ball(ball.rect.centerx, ball.rect.centery, -ball.speed_x, -ball.speed_y, 10, ball.image.get_at((0, 0)))
                             self.balls.add(new_ball)
+                        elif effect == "explosive":
+                            self.explode_blocks(block)
+                        elif effect == "paddle_enlarge":
+                            self.enlarge_paddle()
+
                         self.objects_group.remove(block)
                     else:
                         block.update_appearance()
                 ball.speed_y = -ball.speed_y
 
-        # Remove balls that fall off the screen
         for ball in list(self.balls):
             if ball.rect.bottom >= SCREEN_HEIGHT:
                 self.balls.remove(ball)
 
-        # Game over if no balls remain
         if len(self.balls) == 0:
             print("Game Over!")
+            self.save_high_score()
             self.play_again()
             pygame.time.wait(2000)
             sys.exit()
@@ -175,7 +180,7 @@ class Game:
         self.balls.draw(self.screen)
 
         # Display the current score
-        score_text = SMALL_FONT.render(f"Score: {self.score}", True, WHITE)
+        score_text = SMALL_SMALL_FONT.render(f"Score: {self.score}", True, GREEN)
         self.screen.blit(score_text, (10, 10))  # Position at the top-left corner
 
         # Display the high score

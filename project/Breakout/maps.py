@@ -1,10 +1,33 @@
 # Block types and their properties
 BLOCK_TYPES = {
-    1: {"color": (255, 255, 255), "durability": 1},  # Regular block (white)
-    2: {"color": (0, 255, 0), "durability": 2},      # Strong block (green)
-    3: {"color": (255, 0, 0), "durability": 1, "effect": "explosive"},  # Explosive block (red)
-    4: {"color": (0, 0, 255), "durability": 1, "effect": "paddle_enlarge"},  # Paddle enlarger block (blue)
-    5: {"color": (255, 255, 0), "durability": 1, "effect": "spawn_ball"},  # Ball spawner block (yellow)
+    1: {
+        "color": (255, 255, 255),  # Regular block (white)
+        "durability": 1,
+        "score": 10
+    },
+    2: {
+        "color": (0, 255, 0),      # Strong block (green)
+        "durability": 2,
+        "score": 20
+    },
+    3: {
+        "color": (255, 0, 0),      # Explosive block (red)
+        "durability": 1,
+        "effect": "explosive",
+        "score": 40
+    },
+    4: {
+        "color": (0, 0, 255),      # Paddle enlarger block (blue)
+        "durability": 1,
+        "effect": "paddle_enlarge",
+        "score": 30
+    },
+    5: {
+        "color": (255, 255, 0),    # Ball spawner block (yellow)
+        "durability": 1,
+        "effect": "spawn_ball",
+        "score": 25
+    }
 }
 
 # Map template where:
