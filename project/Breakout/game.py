@@ -3,7 +3,7 @@ import sys
 import random
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, SMALL_SMALL_FONT, WHITE, BLACK, RED, GREEN, BLUE, break_block
 from game_objects import GameObject, Ball
-from maps import MAP_TEMPLATE, BLOCK_TYPES  # Ensure BLOCK_TYPES is defined in maps.py
+from maps import MAP_TEMPLATES, BLOCK_TYPES  # Ensure BLOCK_TYPES is defined in maps.py
 import pygame_menu
 import os
 import pygame.locals
@@ -20,13 +20,15 @@ class Game:
         self.player = GameObject(320, int(SCREEN_HEIGHT * 0.8), 100, 20, WHITE, 5)
         self.objects_group = pygame.sprite.Group()
 
-        # Load the map template
-        self.load_map(MAP_TEMPLATE)
+        self.level_index = 0
+        self.map_templates = MAP_TEMPLATES
+        self.load_map(self.map_templates[self.level_index])
 
         # Use the selected ball color and difficulty
         self.balls = pygame.sprite.Group()
-        ball = [Ball(200, 200, difficulty, difficulty, 10, ball_color)]
+        ball = [Ball(0, 0, 0, 0, 10, ball_color)]
         self.balls.add(ball)
+        self.ball_attached = True   #Ball starts waiting on paddle
 
         self.score = 0  # Initialize score for current run
         self.high_score = self.load_high_score() # Load high score from highscore.txt
@@ -111,6 +113,7 @@ class Game:
         self.player.rect.width += 50
         self.player.image = pygame.Surface((self.player.rect.width, self.player.rect.height))
         self.player.image.fill(WHITE)
+        self.player.mask = pygame.mask.from_surface(self.player.image)
 
     def spawn_ball(self):
         """Spawn an additional ball."""
@@ -132,6 +135,16 @@ class Game:
         if keys[pygame.K_SPACE]:
             self.wait()
 
+        if self.ball_attached:
+            for ball in self.balls:
+                ball.rect.midbottom = (self.player.rect.centerx, self.player.rect.top - 1)
+            
+            if keys[pygame.K_UP]:
+                self.ball_attached = False # Shoot the ball
+                for ball in self.balls:
+                    ball.speed_x = self.difficulty
+                    ball.speed_y = -self.difficulty
+
         new_balls = pygame.sprite.Group()
         for ball in self.balls:
             spawned_ball = ball.move(self.player, self.objects_group)
@@ -151,7 +164,7 @@ class Game:
 
                         effect = block.modifiers.get("effect")
                         if effect == "spawn_ball":
-                            new_ball = Ball(ball.rect.centerx, ball.rect.centery, -ball.speed_x, -ball.speed_y, 10, ball.image.get_at((0, 0)))
+                            new_ball = Ball(ball.rect.centerx, ball.rect.centery, -ball.speed_x, -ball.speed_y, 10, self.ball_color)
                             self.balls.add(new_ball)
                         elif effect == "explosive":
                             self.explode_blocks(block)
@@ -175,6 +188,22 @@ class Game:
             pygame.time.wait(2000)
             sys.exit()
 
+        if not self.objects_group: # no blocks left
+            self.level_index += 1
+            if self.level_index < len(self.map_templates):
+                self.load_map(self.map_templates[self.level_index])
+                self.player.rect.width = 100
+                self.player.image = pygame.Surface((self.player.rect.width, self.player.rect.height))
+                self.player.image.fill(WHITE)
+                self.balls = pygame.sprite.Group()
+                self.balls.add(Ball(0, 0, 0, 0, 10, self.ball_color))
+                self.ball_attached = True
+            else:
+                print("You completed all levels!")
+                self.save_high_score()
+                self.play_again()
+                return
+            
         pygame.display.update()
 
 
@@ -209,6 +238,7 @@ class Game:
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_r:  # Restart the game
+                        self.level_index = 0 # reset to first level
                         self.__init__(self.ball_color, self.difficulty)  # Reinitialize the game with stored values
                         self.run()  # Restart the game loop
                 if event.type == pygame.KEYDOWN:
