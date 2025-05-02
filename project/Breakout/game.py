@@ -1,7 +1,7 @@
 import pygame
 import sys
 import random
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, SMALL_SMALL_FONT, WHITE, BLACK, RED, GREEN, BLUE
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, SMALL_SMALL_FONT, WHITE, BLACK, RED, GREEN, BLUE, break_block
 from game_objects import GameObject, Ball
 from maps import MAP_TEMPLATE, BLOCK_TYPES  # Ensure BLOCK_TYPES is defined in maps.py
 import pygame_menu
@@ -35,6 +35,10 @@ class Game:
         # Generate blocks based on the map template.
         block_width = SCREEN_WIDTH // len(template[0])  # Calculate block width
         block_height = 20  # Fixed block height
+
+        pygame.mixer.music.load('Pixel-Peeker-Polka.wav')
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1)
 
         for row_index, row in enumerate(template):
             for col_index, cell in enumerate(row):
@@ -155,6 +159,7 @@ class Game:
                             self.enlarge_paddle()
 
                         self.objects_group.remove(block)
+                        pygame.mixer.Channel(0).play(pygame.mixer.Sound('bricks.wav'), maxtime=600)
                     else:
                         block.update_appearance()
                 ball.speed_y = -ball.speed_y

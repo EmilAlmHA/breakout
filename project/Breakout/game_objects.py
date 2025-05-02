@@ -1,6 +1,6 @@
 import pygame
 import random
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, bounce_paddel
 
 class GameObject(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height, color, speed=0, durability=1, modifiers=None):
@@ -68,5 +68,6 @@ class Ball(pygame.sprite.Sprite):
             self.speed_y = -self.speed_y
             self.speed_x += random.uniform(0.2, 0.8)
             self.speed_y += random.uniform(-0.8, -0.2)
+            pygame.mixer.Channel(1).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
 
 
