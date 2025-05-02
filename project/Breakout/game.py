@@ -2,7 +2,7 @@ import pygame
 import sys
 import random
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, SMALL_SMALL_FONT, WHITE, BLACK, RED, GREEN, BLUE, break_block
-from game_objects import GameObject, Ball
+from game_objects import GameObject, Ball, instructions
 from maps import MAP_TEMPLATES, BLOCK_TYPES  # Ensure BLOCK_TYPES is defined in maps.py
 import pygame_menu
 import os
@@ -17,8 +17,11 @@ class Game:
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.clock = pygame.time.Clock()
 
-        self.player = GameObject(320, int(SCREEN_HEIGHT * 0.8), 100, 20, WHITE, 5)
+        self.player1 = GameObject(120, int(SCREEN_HEIGHT * 0.8), 100, 20, BLUE, 5)
         self.objects_group = pygame.sprite.Group()
+        self.player2 = GameObject(320, int(SCREEN_HEIGHT * 0.8), 100, 20, GREEN, 5)
+        self.objects_group = pygame.sprite.Group()
+        
 
         self.level_index = 0
         self.map_templates = MAP_TEMPLATES
@@ -60,6 +63,7 @@ class Game:
                         modifiers={k: v for k, v in block_type.items() if k not in ["color", "durability"]}
                     )
                     self.objects_group.add(block)
+        
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -110,10 +114,15 @@ class Game:
 
     def enlarge_paddle(self):
         """Increase the paddle size."""
-        self.player.rect.width += 50
-        self.player.image = pygame.Surface((self.player.rect.width, self.player.rect.height))
-        self.player.image.fill(WHITE)
-        self.player.mask = pygame.mask.from_surface(self.player.image)
+        self.player1.rect.width += 20
+        self.player1.image = pygame.Surface((self.player1.rect.width, self.player1.rect.height))
+        self.player1.image.fill(BLUE)
+        self.player1.mask = pygame.mask.from_surface(self.player1.image)
+
+        self.player2.rect.width += 20
+        self.player2.image = pygame.Surface((self.player2.rect.width, self.player2.rect.height))
+        self.player2.image.fill(GREEN)
+        self.player2.mask = pygame.mask.from_surface(self.player2.image)
 
     def spawn_ball(self):
         """Spawn an additional ball."""
@@ -129,31 +138,45 @@ class Game:
     def update(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
-            self.player.move("left", SCREEN_WIDTH)
+            self.player2.move("left", SCREEN_WIDTH)
         if keys[pygame.K_RIGHT]:
-            self.player.move("right", SCREEN_WIDTH)
+            self.player2.move("right", SCREEN_WIDTH)
+
+        if keys[pygame.K_a]:
+            self.player1.move("left", SCREEN_WIDTH)
+        if keys[pygame.K_d]:
+            self.player1.move("right", SCREEN_WIDTH)        
+        
         if keys[pygame.K_SPACE]:
             self.wait()
 
         if self.ball_attached:
             for ball in self.balls:
-                ball.rect.midbottom = (self.player.rect.centerx, self.player.rect.top - 1)
+                ball.rect.midbottom = (self.player1.rect.centerx, self.player1.rect.top - 1)
+
             
-            if keys[pygame.K_UP]:
+            if keys[pygame.K_w]:
                 self.ball_attached = False # Shoot the ball
                 for ball in self.balls:
                     ball.speed_x = self.difficulty
                     ball.speed_y = -self.difficulty
+                    
 
         new_balls = pygame.sprite.Group()
         for ball in self.balls:
-            spawned_ball = ball.move(self.player, self.objects_group)
+            spawned_ball = ball.move(self.player1, self.objects_group)
             if spawned_ball:
                 new_balls.add(spawned_ball)
 
         self.balls.add(new_balls)
 
         for ball in self.balls:
+            if pygame.sprite.collide_mask(ball, self.player2):
+                ball.speed_y = -ball.speed_y  # Ball bounces off player2
+                ball.speed_x += random.uniform(0.2, 0.8)  # Add some randomness to the bounce
+                ball.speed_y += random.uniform(-0.8, -0.2)
+                pygame.mixer.Channel(1).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
+
             collided_objects = pygame.sprite.spritecollide(ball, self.objects_group, False, pygame.sprite.collide_mask)
             for block in collided_objects:
                 if hasattr(block, "durability"):
@@ -192,9 +215,12 @@ class Game:
             self.level_index += 1
             if self.level_index < len(self.map_templates):
                 self.load_map(self.map_templates[self.level_index])
-                self.player.rect.width = 100
-                self.player.image = pygame.Surface((self.player.rect.width, self.player.rect.height))
-                self.player.image.fill(WHITE)
+                self.player1.rect.width = 100
+                self.player1.image = pygame.Surface((self.player1.rect.width, self.player1.rect.height))
+                self.player1.image.fill(BLUE)
+                self.player2.rect.width = 100
+                self.player2.image = pygame.Surface((self.player2.rect.width, self.player2.rect.height))
+                self.player2.image.fill(GREEN)
                 self.balls = pygame.sprite.Group()
                 self.balls.add(Ball(0, 0, 0, 0, 10, self.ball_color))
                 self.ball_attached = True
@@ -210,7 +236,8 @@ class Game:
     def draw(self):
         self.screen.fill(BLACK)
         self.objects_group.draw(self.screen)
-        self.screen.blit(self.player.image, self.player.rect)
+        self.screen.blit(self.player1.image, self.player1.rect)
+        self.screen.blit(self.player2.image, self.player2.rect)
         self.balls.draw(self.screen)
 
         # Display the current score
