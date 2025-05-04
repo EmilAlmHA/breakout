@@ -73,32 +73,26 @@ class Ball(pygame.sprite.Sprite):
             pygame.mixer.Channel(1).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
 
 
-class instructions():
-    def instructions():
-        while True:
-            white = (255, 255, 255)
-            black = (0, 0, 0)
-            surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-            pygame.display.set_caption('Instructions')
-            font = pygame.font.Font('freesansbold.ttf', 32)
-            text = font.render('Blue: A and D for movement,', True, white)
-            text1 = font.render('W to shoot ball', True, white)
-            text2 = font.render('Green: Left and Right arrow for movement', True, white)
-            textRect = text.get_rect()
-            textRect.center = (SCREEN_WIDTH // 1.25, SCREEN_HEIGHT // 2)
-            textRect1 = text.get_rect()
-            textRect1.center = (SCREEN_WIDTH // 1.25, SCREEN_HEIGHT // 1.65)
-            textRect2 = text.get_rect()
-            textRect2.center = (SCREEN_WIDTH // 1.25, SCREEN_HEIGHT // 1.4)
-            while True:
-                surface.fill(black)
-                surface.blit(text, textRect)
-                surface.blit(text1, textRect1)
-                surface.blit(text2, textRect2)
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit() 
-                        quit()
- 
+class instruction:
+    def instructions(surface):
+        white = (255, 255, 255)
+        black = (0, 0, 0)
         
-                pygame.display.update()
+        
+        font = pygame.font.Font('freesansbold.ttf', 24)
+        text = font.render('Blue: A and D for movement,', True, white)
+        text1 = font.render('W to shoot ball', True, white)
+        text2 = font.render('Green: Left and Right arrow for movement', True, white)
+        textRect = text.get_rect()
+        textRect.center = (SCREEN_WIDTH // 2.75, SCREEN_HEIGHT // 2)
+        textRect1 = text.get_rect()
+        textRect1.center = (SCREEN_WIDTH // 2.75, SCREEN_HEIGHT // 1.65)
+        textRect2 = text.get_rect()
+        textRect2.center = (SCREEN_WIDTH // 2.75, SCREEN_HEIGHT // 1.4)
+            
+
+        surface.blit(text, textRect)
+        surface.blit(text1, textRect1)
+        surface.blit(text2, textRect2)
+            
+        pygame.display.update()

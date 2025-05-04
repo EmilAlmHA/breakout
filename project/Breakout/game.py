@@ -2,7 +2,7 @@ import pygame
 import sys
 import random
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, SMALL_SMALL_FONT, WHITE, BLACK, RED, GREEN, BLUE, break_block
-from game_objects import GameObject, Ball, instructions
+from game_objects import GameObject, Ball, instruction
 from maps import MAP_TEMPLATES, BLOCK_TYPES  # Ensure BLOCK_TYPES is defined in maps.py
 import pygame_menu
 import os
@@ -135,6 +135,29 @@ class Game:
             )
             self.balls.append(new_ball)  # Add the new ball to the list of balls
 
+    
+    def instructions(self):
+        font = pygame.font.Font('freesansbold.ttf', 32)
+        text = font.render('Blue: A and D for movement,', True, WHITE)
+        text1 = font.render('W to shoot ball', True, WHITE)
+        text2 = font.render('Green: Left and Right arrow for movement', True, WHITE)
+        textRect = text.get_rect()
+        textRect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT // 2)
+        textRect1 = text.get_rect()
+        textRect1.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT // 1.65)
+        textRect2 = text.get_rect()
+        textRect2.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT // 1.4)
+        while True:
+            self.screen.blit(text, textRect)
+            self.screen.blit(text1, textRect1)
+            self.screen.blit(text2, textRect2)
+            pygame.display.update()
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_w:  # Wait for W key
+                        return
+    
+
     def update(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
@@ -157,6 +180,7 @@ class Game:
             
             if keys[pygame.K_w]:
                 self.ball_attached = False # Shoot the ball
+                self.instructions = False
                 for ball in self.balls:
                     ball.speed_x = self.difficulty
                     ball.speed_y = -self.difficulty
@@ -240,6 +264,9 @@ class Game:
         self.screen.blit(self.player2.image, self.player2.rect)
         self.balls.draw(self.screen)
 
+        if self.instructions:
+            instruction.instructions(self.screen)
+
         # Display the current score
         score_text = SMALL_SMALL_FONT.render(f"Score: {self.score}", True, GREEN)
         self.screen.blit(score_text, (10, 10))  # Position at the top-left corner
@@ -273,6 +300,7 @@ class Game:
                         sys.exit()
 
     def run(self):
+        instruction()
         while True:
             self.handle_events()
             self.update()
