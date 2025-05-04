@@ -67,9 +67,12 @@ class Ball(pygame.sprite.Sprite):
 
         # Bounce off paddle
         if pygame.sprite.collide_mask(self, paddle):
-            self.speed_y = -self.speed_y
-            self.speed_x += random.uniform(0.2, 0.8)
-            self.speed_y += random.uniform(-0.8, -0.2)
+            # Calculate hit position: distance from paddle center (normalized -1 to 1)
+            hit_pos = (self.rect.centerx - paddle.rect.centerx) / (paddle.rect.width / 2)
+            self.speed_y = -abs(self.speed_y)
+            # Adjust X velocity based on where the ball hit the paddle
+            self.speed_x = hit_pos * 5  # Tweak multiplier for difficulty
+            self.speed_y += random.uniform(-0.5, -0.2)  
             pygame.mixer.Channel(1).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
 
 class PowerUp(pygame.sprite.Sprite):

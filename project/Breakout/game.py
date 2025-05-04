@@ -223,8 +223,18 @@ class Game:
                         pygame.mixer.Channel(0).play(pygame.mixer.Sound('bricks.wav'), maxtime=600)
                     else:
                         block.update_appearance()
-                ball.speed_y = -ball.speed_y
-
+                if abs(ball.rect.bottom - block.rect.top) < 10 and ball.speed_y > 0:
+                    ball.speed_y = -abs(ball.speed_y) # hitting the block from above
+                elif abs(ball.rect.top - block.rect.bottom) < 10 and ball.speed_y < 0:
+                    ball.speed_y = abs(ball.speed_y) # hitting from below
+                elif abs(ball.rect.right - block.rect.left) < 10 and ball.speed_x > 0:
+                    ball.speed_x = abs(ball.speed_x) # hitting the left side
+                elif abs(ball.rect.left - block.rect.right) < 10 and ball.speed_x < 0:
+                    ball.speed_x = abs(ball.speed_x) # hitting the right side
+                else:
+                    # Fallback if funkyness
+                    ball.speed_y = -ball.speed_y
+                
             self.powerups.update()
 
             for powerup in list(self.powerups):
