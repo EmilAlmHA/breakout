@@ -26,6 +26,7 @@ class Game:
         self.level_index = 0
         self.map_templates = random.sample(MAP_TEMPLATES, len(MAP_TEMPLATES))
         self.load_map(self.map_templates[self.level_index])
+        self.lives = 3  # 3 lives per stage
 
         # Use the selected ball color and difficulty
         self.balls = pygame.sprite.Group()
@@ -240,11 +241,17 @@ class Game:
                 self.balls.remove(ball)
 
         if len(self.balls) == 0:
-            print("Game Over!")
-            self.save_high_score()
-            self.play_again()
-            pygame.time.wait(2000)
-            sys.exit()
+            self.lives -= 1
+            if self.lives > 0:
+                self.balls = pygame.sprite.Group()
+                self.balls.add(Ball(0, 0, 0, 0, 10, self.ball_color))
+                self.ball_attached = True
+            else:
+                print("Game Over!")
+                self.save_high_score()
+                self.play_again()
+                pygame.time.wait(2000)
+                sys.exit()
 
         if not self.objects_group: # no blocks left
             self.level_index += 1
@@ -279,6 +286,10 @@ class Game:
 
         if self.instructions:
             instruction.instructions(self.screen)
+
+        # Display current lives
+        lives_text = SMALL_SMALL_FONT.render(f"Lives: {self.lives}", True, RED)
+        self.screen.blit(lives_text, (10, 40))
 
         # Display the current score
         score_text = SMALL_SMALL_FONT.render(f"Score: {self.score}", True, GREEN)
