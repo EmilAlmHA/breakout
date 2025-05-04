@@ -24,7 +24,7 @@ class Game:
         self.powerups = pygame.sprite.Group()
 
         self.level_index = 0
-        self.map_templates = MAP_TEMPLATES
+        self.map_templates = random.sample(MAP_TEMPLATES, len(MAP_TEMPLATES))
         self.load_map(self.map_templates[self.level_index])
 
         # Use the selected ball color and difficulty
