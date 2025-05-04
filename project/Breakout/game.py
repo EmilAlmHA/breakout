@@ -2,7 +2,7 @@ import pygame
 import sys
 import random
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, SMALL_SMALL_FONT, WHITE, BLACK, RED, GREEN, BLUE, break_block
-from game_objects import GameObject, Ball, instruction
+from game_objects import GameObject, Ball, instruction, PowerUp
 from maps import MAP_TEMPLATES, BLOCK_TYPES  # Ensure BLOCK_TYPES is defined in maps.py
 import pygame_menu
 import os
@@ -21,7 +21,7 @@ class Game:
         self.objects_group = pygame.sprite.Group()
         self.player2 = GameObject(320, int(SCREEN_HEIGHT * 0.8), 100, 20, GREEN, 5)
         self.objects_group = pygame.sprite.Group()
-        
+        self.powerups = pygame.sprite.Group()
 
         self.level_index = 0
         self.map_templates = MAP_TEMPLATES
@@ -209,20 +209,31 @@ class Game:
                         score_gain = block.modifiers.get("score", 10)
                         self.score += score_gain
 
+                        # Drop a power-up for some effects
                         effect = block.modifiers.get("effect")
-                        if effect == "spawn_ball":
-                            new_ball = Ball(ball.rect.centerx, ball.rect.centery, -ball.speed_x, -ball.speed_y, 10, self.ball_color)
-                            self.balls.add(new_ball)
+                        if effect in ["paddle_enlarge", "spawn_ball"]:
+                            powerup = PowerUp(block.rect.x, block.rect.y, effect, color=block.base_color)
+                            self.powerups.add(powerup)
                         elif effect == "explosive":
                             self.explode_blocks(block)
-                        elif effect == "paddle_enlarge":
-                            self.enlarge_paddle()
+                        effect = block.modifiers.get("effect")
 
                         self.objects_group.remove(block)
                         pygame.mixer.Channel(0).play(pygame.mixer.Sound('bricks.wav'), maxtime=600)
                     else:
                         block.update_appearance()
                 ball.speed_y = -ball.speed_y
+
+            self.powerups.update()
+
+            for powerup in list(self.powerups):
+                if pygame.sprite.collide_mask(powerup, self.player1) or pygame.sprite.collide_mask(powerup, self.player2):
+                    if powerup.effect == "paddle_enlarge":
+                        self.enlarge_paddle()
+                    elif powerup.effect == "spawn_ball":
+                        new_ball = Ball(powerup.rect.centerx, powerup.rect.centery, random.choice([-3, 3]), -3, 10, self.ball_color)
+                        self.balls.add(new_ball)
+                    self.powerups.remove(powerup)
 
         for ball in list(self.balls):
             if ball.rect.bottom >= SCREEN_HEIGHT:
@@ -238,6 +249,7 @@ class Game:
         if not self.objects_group: # no blocks left
             self.level_index += 1
             if self.level_index < len(self.map_templates):
+                self.powerups.empty()
                 self.load_map(self.map_templates[self.level_index])
                 self.player1.rect.width = 100
                 self.player1.image = pygame.Surface((self.player1.rect.width, self.player1.rect.height))
@@ -263,6 +275,7 @@ class Game:
         self.screen.blit(self.player1.image, self.player1.rect)
         self.screen.blit(self.player2.image, self.player2.rect)
         self.balls.draw(self.screen)
+        self.powerups.draw(self.screen)
 
         if self.instructions:
             instruction.instructions(self.screen)

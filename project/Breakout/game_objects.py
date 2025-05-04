@@ -72,6 +72,18 @@ class Ball(pygame.sprite.Sprite):
             self.speed_y += random.uniform(-0.8, -0.2)
             pygame.mixer.Channel(1).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
 
+class PowerUp(pygame.sprite.Sprite):
+    def __init__(self, x, y, effect, color=(255, 255, 0)):
+        super().__init__()
+        self.image = pygame.Surface((20, 20))
+        self.image.fill(color)
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.effect = effect
+        self.speed = 2
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def update(self):
+        self.rect.y += self.speed
 
 class instruction:
     def instructions(surface):
