@@ -1,4 +1,5 @@
 import pygame
+
 pygame.init()
 pygame.joystick.init()
 
@@ -23,5 +24,7 @@ while running:
             pygame.JOYAXISMOTION, pygame.JOYHATMOTION
         ):
             print(event)
+
+
 
 pygame.quit()

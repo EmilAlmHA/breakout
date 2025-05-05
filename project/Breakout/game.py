@@ -177,7 +177,7 @@ class Game:
                 self.player1.move("right", SCREEN_WIDTH)
 
             # Shoot with X
-            if self.ball_attached and self.joystick.get_button(2):  # Cross button
+            if self.ball_attached and self.joystick.get_button(0):  # Cross button
                 self.ball_attached = False
                 self.instructions = False
                 for ball in self.balls:
@@ -358,27 +358,4 @@ class Game:
             self.draw()
             self.clock.tick(60)
     
-    """
-    def paused(self):
-
-        largeText = pygame.font.SysFont("comicsansms",115)
-        TextSurf, TextRect = BIG_FONT("Paused", largeText)
-        TextRect.center = ((SCREEN_WIDTH/2),(SCREEN_HEIGHT/2))
-        self.screen.blit(TextSurf, TextRect)
-    
-
-        while paused:
-            for event in pygame.event.get():
-
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    quit()
-                
-        #gameDisplay.fill(white)
-        
-
-            largeText.add.button("Continue",150,450,100,50,GREEN, pygame.run)
-            largeText.add.button("Quit",550,450,100,50,RED, sys.exit())
-
-            pygame.display.update()
-            """
+   
