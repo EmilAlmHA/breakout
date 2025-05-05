@@ -28,6 +28,18 @@ class Game:
         self.load_map(self.map_templates[self.level_index])
         self.lives = 3  # 3 lives per stage
 
+        pygame.joystick.init()
+        self.joystick1 = None
+        self.joystick2 = None
+        if pygame.joystick.get_count() > 0:
+            self.joystick = pygame.joystick.Joystick(0)
+            self.joystick.init()
+
+        if pygame.joystick.get_count() > 1:
+            self.joystick2 = pygame.joystick.Joystick(1)
+            self.joystick2.init()
+
+
         # Use the selected ball color and difficulty
         self.balls = pygame.sprite.Group()
         ball = [Ball(0, 0, 0, 0, 10, ball_color)]
@@ -173,6 +185,29 @@ class Game:
         
         if keys[pygame.K_SPACE]:
             self.wait()
+
+        # Controller movement Player 1
+        if self.joystick:
+            axis_x = self.joystick.get_axis(0)  # D-pad left/right
+            if axis_x < -0.5:
+                self.player1.move("left", SCREEN_WIDTH)
+            elif axis_x > 0.5:
+                self.player1.move("right", SCREEN_WIDTH)
+
+            # Shoot with X
+            if self.ball_attached and self.joystick.get_button(2):  # Cross button
+                self.ball_attached = False
+                self.instructions = False
+                for ball in self.balls:
+                    ball.speed_x = self.difficulty
+                    ball.speed_y = -self.difficulty
+
+        # Controller movement for player 2
+        if self.joystick2:
+            axis_x2 = self.joystick2.get_axis(0)
+            if axis_x2 < -0.5:
+                self.player2.move("left", SCREEN_WIDTH)
+            elif axis_x2 > 0.5: self.player2.move("right", SCREEN_WIDTH)
 
         if self.ball_attached:
             for ball in self.balls:
