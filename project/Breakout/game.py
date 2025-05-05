@@ -26,6 +26,19 @@ class Game:
         self.level_index = 0
         self.map_templates = random.sample(MAP_TEMPLATES, len(MAP_TEMPLATES))
         self.load_map(self.map_templates[self.level_index])
+        self.lives = 3  # 3 lives per stage
+
+        pygame.joystick.init()
+        self.joystick1 = None
+        self.joystick2 = None
+        if pygame.joystick.get_count() > 0:
+            self.joystick = pygame.joystick.Joystick(0)
+            self.joystick.init()
+
+        if pygame.joystick.get_count() > 1:
+            self.joystick2 = pygame.joystick.Joystick(1)
+            self.joystick2.init()
+
 
         # Use the selected ball color and difficulty
         self.balls = pygame.sprite.Group()
@@ -155,6 +168,29 @@ class Game:
         if keys[pygame.K_SPACE]:
             self.wait()
 
+        # Controller movement Player 1
+        if self.joystick:
+            axis_x = self.joystick.get_axis(0)  # D-pad left/right
+            if axis_x < -0.5:
+                self.player1.move("left", SCREEN_WIDTH)
+            elif axis_x > 0.5:
+                self.player1.move("right", SCREEN_WIDTH)
+
+            # Shoot with X
+            if self.ball_attached and self.joystick.get_button(2):  # Cross button
+                self.ball_attached = False
+                self.instructions = False
+                for ball in self.balls:
+                    ball.speed_x = self.difficulty
+                    ball.speed_y = -self.difficulty
+
+        # Controller movement for player 2
+        if self.joystick2:
+            axis_x2 = self.joystick2.get_axis(0)
+            if axis_x2 < -0.5:
+                self.player2.move("left", SCREEN_WIDTH)
+            elif axis_x2 > 0.5: self.player2.move("right", SCREEN_WIDTH)
+
         if self.ball_attached:
             for ball in self.balls:
                 ball.rect.midbottom = (self.player1.rect.centerx, self.player1.rect.top - 1)
@@ -204,8 +240,18 @@ class Game:
                         pygame.mixer.Channel(0).play(pygame.mixer.Sound('bricks.wav'), maxtime=600)
                     else:
                         block.update_appearance()
-                ball.speed_y = -ball.speed_y
-
+                if abs(ball.rect.bottom - block.rect.top) < 10 and ball.speed_y > 0:
+                    ball.speed_y = -abs(ball.speed_y) # hitting the block from above
+                elif abs(ball.rect.top - block.rect.bottom) < 10 and ball.speed_y < 0:
+                    ball.speed_y = abs(ball.speed_y) # hitting from below
+                elif abs(ball.rect.right - block.rect.left) < 10 and ball.speed_x > 0:
+                    ball.speed_x = abs(ball.speed_x) # hitting the left side
+                elif abs(ball.rect.left - block.rect.right) < 10 and ball.speed_x < 0:
+                    ball.speed_x = abs(ball.speed_x) # hitting the right side
+                else:
+                    # Fallback if funkyness
+                    ball.speed_y = -ball.speed_y
+                
             self.powerups.update()
 
             for powerup in list(self.powerups):
@@ -222,11 +268,17 @@ class Game:
                 self.balls.remove(ball)
 
         if len(self.balls) == 0:
-            print("Game Over!")
-            self.save_high_score()
-            self.play_again()
-            pygame.time.wait(2000)
-            sys.exit()
+            self.lives -= 1
+            if self.lives > 0:
+                self.balls = pygame.sprite.Group()
+                self.balls.add(Ball(0, 0, 0, 0, 10, self.ball_color))
+                self.ball_attached = True
+            else:
+                print("Game Over!")
+                self.save_high_score()
+                self.play_again()
+                pygame.time.wait(2000)
+                sys.exit()
 
         if not self.objects_group: # no blocks left
             self.level_index += 1
@@ -261,6 +313,10 @@ class Game:
 
         if self.instructions:
             instruction.instructions(self.screen)
+
+        # Display current lives
+        lives_text = SMALL_SMALL_FONT.render(f"Lives: {self.lives}", True, RED)
+        self.screen.blit(lives_text, (10, 40))
 
         # Display the current score
         score_text = SMALL_SMALL_FONT.render(f"Score: {self.score}", True, GREEN)
