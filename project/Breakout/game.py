@@ -156,25 +156,28 @@ class Game:
     def update(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
-            self.player2.move("left", SCREEN_WIDTH)
+            if self.player2.rect.left > self.player1.rect.right:
+                self.player2.move("left", SCREEN_WIDTH)
         if keys[pygame.K_RIGHT]:
             self.player2.move("right", SCREEN_WIDTH)
 
         if keys[pygame.K_a]:
             self.player1.move("left", SCREEN_WIDTH)
         if keys[pygame.K_d]:
-            self.player1.move("right", SCREEN_WIDTH)        
+            if self.player1.rect.right < self.player2.rect.left:
+                self.player1.move("right", SCREEN_WIDTH)        
         
         if keys[pygame.K_SPACE]:
             self.wait()
 
         # Controller movement Player 1
-        if self.joystick:
+        if self.joystick1:
             axis_x = self.joystick.get_axis(0)  # D-pad left/right
             if axis_x < -0.5:
                 self.player1.move("left", SCREEN_WIDTH)
             elif axis_x > 0.5:
-                self.player1.move("right", SCREEN_WIDTH)
+                if self.player1.rect.right > self.player2.rect.left:
+                    self.player1.move("right", SCREEN_WIDTH)
 
             # Shoot with X
             if self.ball_attached and self.joystick.get_button(0):  # Cross button
@@ -188,7 +191,8 @@ class Game:
         if self.joystick2:
             axis_x2 = self.joystick2.get_axis(0)
             if axis_x2 < -0.5:
-                self.player2.move("left", SCREEN_WIDTH)
+                if self.player1.rect.right > self.player2.rect.left:
+                    self.player2.move("left", SCREEN_WIDTH)
             elif axis_x2 > 0.5: self.player2.move("right", SCREEN_WIDTH)
 
         if self.ball_attached:
