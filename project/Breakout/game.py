@@ -180,13 +180,13 @@ class Game:
                     if self.player1.rect.right < self.player2.rect.left:
                         self.player1.move("right", SCREEN_WIDTH)
 
-            # Shoot with X
-                if self.ball_attached and self.joystick.get_button(0):  # Cross button
-                    self.ball_attached = False
-                    self.instructions = False
-                    for ball in self.balls:
-                        ball.speed_x = self.difficulty
-                        ball.speed_y = -self.difficulty
+            # Shoot with Triangle
+            if self.ball_attached and self.joystick.get_button(0):  
+                self.ball_attached = False
+                self.instructions = False
+                for ball in self.balls:
+                    ball.speed_x = self.difficulty
+                    ball.speed_y = -self.difficulty
 
         # Controller movement for player 2
             if self.joystick2:
