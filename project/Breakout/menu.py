@@ -1,7 +1,6 @@
 import pygame
 import pygame_menu
 import pygame_menu.controls as ctrl
-import pygame_menu.controls
 from game import Game
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BALL_COLORS
 

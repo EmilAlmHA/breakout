@@ -21,7 +21,7 @@ while running:
         # Print any controller input event
         elif event.type in (
             pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP,
-            pygame.JOYAXISMOTION, pygame.JOYHATMOTION
+            pygame.JOYAXISMOTION
         ):
             print(event)
 

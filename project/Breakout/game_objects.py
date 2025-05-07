@@ -5,7 +5,7 @@ from settings import SCREEN_WIDTH, SCREEN_HEIGHT, bounce_paddel
 class GameObject(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height, color, speed=0, durability=1, modifiers=None):
         super().__init__()
-        self.image = pygame.Surface((width, height))
+        self.image = pygame.Surface((width-1, height-1))
         self.image.fill(color)
         self.rect = self.image.get_rect(topleft=(x, y))
         self.speed = speed

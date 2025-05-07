@@ -321,14 +321,35 @@ class Game:
             instruction.instructions(self.screen)
 
         # Display current lives
+        # For black outline, prints the text in black 4 times slightly shifted
+        lives_text = SMALL_SMALL_FONT.render(f"Lives: {self.lives}", True, BLACK)
+        self.screen.blit(lives_text, (9, 39))
+        self.screen.blit(lives_text, (9, 41))
+        self.screen.blit(lives_text, (11, 39))
+        self.screen.blit(lives_text, (11, 41))
+        # "real" text
         lives_text = SMALL_SMALL_FONT.render(f"Lives: {self.lives}", True, RED)
         self.screen.blit(lives_text, (10, 40))
 
         # Display the current score
+        # Outline
+        score_text = SMALL_SMALL_FONT.render(f"Score: {self.score}", True, BLACK)
+        self.screen.blit(score_text, (9, 9))
+        self.screen.blit(score_text, (9, 11))
+        self.screen.blit(score_text, (11, 9))
+        self.screen.blit(score_text, (11, 11))
+        # Real text
         score_text = SMALL_SMALL_FONT.render(f"Score: {self.score}", True, GREEN)
         self.screen.blit(score_text, (10, 10))  # Position at the top-left corner
 
         # Display the high score
+        # Outline
+        high_score_text = SMALL_SMALL_FONT.render(f"High Score: {self.high_score}", True, BLACK)
+        self.screen.blit(high_score_text, (9, 24))
+        self.screen.blit(high_score_text, (9, 26))
+        self.screen.blit(high_score_text, (11, 24))
+        self.screen.blit(high_score_text, (11, 26))
+        # Real text
         high_score_text = SMALL_SMALL_FONT.render(f"High Score: {self.high_score}", True, GREEN)
         self.screen.blit(high_score_text, (10, 25))  # Position below the score
         
