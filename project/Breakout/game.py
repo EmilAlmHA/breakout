@@ -179,8 +179,8 @@ class Game:
                 if self.player1.rect.right > self.player2.rect.left:
                     self.player1.move("right", SCREEN_WIDTH)
 
-            # Shoot with X
-            if self.ball_attached and self.joystick.get_button(0):  # Cross button
+            # Shoot with Triangle
+            if self.ball_attached and self.joystick.get_button(0):  
                 self.ball_attached = False
                 self.instructions = False
                 for ball in self.balls:
