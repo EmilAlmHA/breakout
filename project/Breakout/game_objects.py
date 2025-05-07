@@ -80,7 +80,7 @@ class Ball(pygame.sprite.Sprite):
                 # Adjust X velocity based on where the ball hit the paddle
                 self.speed_x = hit_pos * 5  # Tweak multiplier for difficulty
                 self.speed_y += random.uniform(-0.5, -0.2)  
-        pygame.mixer.Channel(1).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
+            pygame.mixer.Channel(0).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
 
 class PowerUp(pygame.sprite.Sprite):
     def __init__(self, x, y, effect, color=(255, 255, 0)):

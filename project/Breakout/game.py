@@ -222,7 +222,7 @@ class Game:
                 ball.speed_y = -ball.speed_y  # Ball bounces off player2
                 ball.speed_x += random.uniform(0.2, 0.8)  # Add some randomness to the bounce
                 ball.speed_y += random.uniform(-0.8, -0.2)
-                pygame.mixer.Channel(1).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
+                pygame.mixer.Channel(0).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
 
             collided_objects = pygame.sprite.spritecollide(ball, self.objects_group, False, pygame.sprite.collide_mask)
             for block in collided_objects:
