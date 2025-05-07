@@ -43,7 +43,7 @@ class Game:
 
         # Use the selected ball color and difficulty
         self.balls = pygame.sprite.Group()
-        ball = [Ball(0, 0, 0, 0, 10, ball_color)]
+        ball = Ball(0, 0, 0, 0, 10, ball_color)
         self.balls.add(ball)
         self.ball_attached = True   #Ball starts waiting on paddle
 
@@ -118,12 +118,25 @@ class Game:
                         sys.exit()
                         
 
-    def explode_blocks(self, block):
-        """Destroy adjacent blocks."""
-        for other_block in self.objects_group:
-            if abs(other_block.rect.x - block.rect.x) <= other_block.rect.width and \
-               abs(other_block.rect.y - block.rect.y) <= other_block.rect.height:
-                self.objects_group.remove(other_block)
+    def explode_blocks(self, center_block):
+        cx, cy = center_block.rect.center
+        bw = center_block.rect.width + 4  # block width + 4px gap
+        bh = center_block.rect.height + 4  # block height + 4px gap
+
+        to_remove = []
+
+        for other_block in list(self.objects_group):
+            dx = abs(cx - other_block.rect.centerx)
+            dy = abs(cy - other_block.rect.centery)
+
+            if dx <= bw and dy <= bh:
+                to_remove.append(other_block)
+
+        for b in to_remove:
+            self.objects_group.remove(b)
+            self.score += b.modifiers.get("score", 10)
+
+
 
     def enlarge_paddle(self):
         """Increase the paddle size."""
@@ -222,7 +235,8 @@ class Game:
                 ball.speed_y = -ball.speed_y  # Ball bounces off player2
                 ball.speed_x += random.uniform(0.2, 0.8)  # Add some randomness to the bounce
                 ball.speed_y += random.uniform(-0.8, -0.2)
-                pygame.mixer.Channel(1).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
+                if not pygame.mixer.Channel(1).get_busy():
+                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
 
             collided_objects = pygame.sprite.spritecollide(ball, self.objects_group, False, pygame.sprite.collide_mask)
             for block in collided_objects:
@@ -304,9 +318,7 @@ class Game:
                 self.save_high_score()
                 self.play_again()
                 return
-            
-        pygame.display.update()
-
+    
 
     def draw(self):
         self.screen.fill(BLACK)

@@ -67,20 +67,14 @@ class Ball(pygame.sprite.Sprite):
 
         # Bounce off paddle
         if pygame.sprite.collide_mask(self, paddle):
-            overlap_left = abs(self.rect.right - paddle.rect.left)
-            overlap_right = abs(self.rect.left - paddle.rect.right)
-            overlap_top = abs(self.rect.bottom - paddle.rect.top)
-            # If side of paddle is hit
-            if min(overlap_left, overlap_right) < overlap_top and abs(self.speed_x) > 0.5:
-                self.speed_x = -self.speed_x # reflect horizontally
-            else:
-                # Calculate hit position: distance from paddle center (normalized -1 to 1)
-                hit_pos = (self.rect.centerx - paddle.rect.centerx) / (paddle.rect.width / 2)
-                self.speed_y = -abs(self.speed_y)
-                # Adjust X velocity based on where the ball hit the paddle
-                self.speed_x = hit_pos * 5  # Tweak multiplier for difficulty
-                self.speed_y += random.uniform(-0.5, -0.2)  
-        pygame.mixer.Channel(1).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
+            # Calculate hit position: distance from paddle center (normalized -1 to 1)
+            hit_pos = (self.rect.centerx - paddle.rect.centerx) / (paddle.rect.width / 2)
+            self.speed_y = -abs(self.speed_y)
+            # Adjust X velocity based on where the ball hit the paddle
+            self.speed_x = hit_pos * 5  # Tweak multiplier for difficulty
+            self.speed_y += random.uniform(-0.5, -0.2)  
+            pygame.mixer.Channel(1).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
+
 
 class PowerUp(pygame.sprite.Sprite):
     def __init__(self, x, y, effect, color=(255, 255, 0)):
