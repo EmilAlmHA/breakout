@@ -19,7 +19,9 @@ if pygame.joystick.get_count() > 0:
         joystick2 = pygame.joystick.Joystick(1)
         joystick2.init()
         
-ctrl.KEY_APPLY = pygame.JOYBUTTONDOWN == 2
+    if pygame.joystick.get_count() == 0:
+        keys = pygame.key.get_pressed()
+        ctrl.KEY_APPLY = keys[pygame.K_RETURN]
 
 
 def set_difficulty(difficulty_level, set_difficulty):
