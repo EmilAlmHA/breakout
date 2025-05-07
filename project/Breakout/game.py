@@ -8,6 +8,7 @@ import pygame_menu
 import os
 import pygame.locals
 
+background = pygame.image.load("fire.png")
 
 class Game:
     def __init__(self, ball_color, difficulty):
@@ -53,7 +54,6 @@ class Game:
         # Generate blocks based on the map template.
         block_width = SCREEN_WIDTH // len(template[0])  # Calculate block width
         block_height = 20  # Fixed block height
-
         pygame.mixer.music.load('Pixel-Peeker-Polka.wav')
         pygame.mixer.music.set_volume(0.5)
         pygame.mixer.music.play(-1)
@@ -170,30 +170,31 @@ class Game:
         if keys[pygame.K_SPACE]:
             self.wait()
 
+        if pygame.joystick.get_count() > 0:
         # Controller movement Player 1
-        if self.joystick1:
-            axis_x = self.joystick.get_axis(0)  # D-pad left/right
-            if axis_x < -0.5:
-                self.player1.move("left", SCREEN_WIDTH)
-            elif axis_x > 0.5:
-                if self.player1.rect.right > self.player2.rect.left:
-                    self.player1.move("right", SCREEN_WIDTH)
+            if self.joystick:
+                axis_x = self.joystick.get_axis(0)  # D-pad left/right
+                if axis_x < -0.5:
+                    self.player1.move("left", SCREEN_WIDTH)
+                elif axis_x > 0.5:
+                    if self.player1.rect.right < self.player2.rect.left:
+                        self.player1.move("right", SCREEN_WIDTH)
 
             # Shoot with X
-            if self.ball_attached and self.joystick.get_button(0):  # Cross button
-                self.ball_attached = False
-                self.instructions = False
-                for ball in self.balls:
-                    ball.speed_x = self.difficulty
-                    ball.speed_y = -self.difficulty
+                if self.ball_attached and self.joystick.get_button(0):  # Cross button
+                    self.ball_attached = False
+                    self.instructions = False
+                    for ball in self.balls:
+                        ball.speed_x = self.difficulty
+                        ball.speed_y = -self.difficulty
 
         # Controller movement for player 2
-        if self.joystick2:
-            axis_x2 = self.joystick2.get_axis(0)
-            if axis_x2 < -0.5:
-                if self.player1.rect.right > self.player2.rect.left:
-                    self.player2.move("left", SCREEN_WIDTH)
-            elif axis_x2 > 0.5: self.player2.move("right", SCREEN_WIDTH)
+            if self.joystick2:
+                axis_x2 = self.joystick2.get_axis(0)
+                if axis_x2 < -0.5:
+                    if self.player1.rect.right < self.player2.rect.left:
+                        self.player2.move("left", SCREEN_WIDTH)
+                if axis_x2 > 0.5: self.player2.move("right", SCREEN_WIDTH)
 
         if self.ball_attached:
             for ball in self.balls:
@@ -309,6 +310,7 @@ class Game:
 
     def draw(self):
         self.screen.fill(BLACK)
+        self.screen.blit(background, (0, 50))
         self.objects_group.draw(self.screen)
         self.screen.blit(self.player1.image, self.player1.rect)
         self.screen.blit(self.player2.image, self.player2.rect)
