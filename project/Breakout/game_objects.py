@@ -100,16 +100,20 @@ class instruction:
         text = font.render('Blue: A and D for movement,', True, white)
         text1 = font.render('W to shoot ball', True, white)
         text2 = font.render('Green: Left and Right arrow for movement', True, white)
+        text3 = font.render('Controller: Left and Right, P1 Triangle to shoot', True, white)
         textRect = text.get_rect()
         textRect.center = (SCREEN_WIDTH // 2.75, SCREEN_HEIGHT // 2)
         textRect1 = text.get_rect()
         textRect1.center = (SCREEN_WIDTH // 2.75, SCREEN_HEIGHT // 1.65)
         textRect2 = text.get_rect()
         textRect2.center = (SCREEN_WIDTH // 2.75, SCREEN_HEIGHT // 1.4)
+        textRect3 = text.get_rect()
+        textRect3.center = (SCREEN_WIDTH // 2.75, SCREEN_HEIGHT // 1.15)
             
 
         surface.blit(text, textRect)
         surface.blit(text1, textRect1)
         surface.blit(text2, textRect2)
+        surface.blit(text3, textRect3)
             
         pygame.display.update()
