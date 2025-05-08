@@ -11,10 +11,12 @@ import pygame.locals
 background = pygame.image.load("fire.png")
 
 class Game:
-    def __init__(self, ball_color, difficulty):
+    def __init__(self, ball_color, difficulty, PLAYER1, PLAYER2):
         self.ball_color = ball_color  # Store ball_color
         self.difficulty = difficulty  # Store difficulty
-
+        self.PLAYER1 = PLAYER1
+        self.PLAYER2 = PLAYER2
+        print(PLAYER1, PLAYER2)
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.clock = pygame.time.Clock()
 
@@ -166,7 +168,7 @@ class Game:
         """"""
     
 
-    def update(self):
+    def update(self, PLAYER1, PLAYER2):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             if self.player2.rect.left > self.player1.rect.right:
@@ -320,12 +322,16 @@ class Game:
                 return
     
 
-    def draw(self):
+    def draw(self, PLAYER1, PLAYER2):
         self.screen.fill(BLACK)
         self.screen.blit(background, (0, 50))
         self.objects_group.draw(self.screen)
         self.screen.blit(self.player1.image, self.player1.rect)
+        player1name = SMALL_SMALL_FONT.render(f"{PLAYER1}", True, WHITE)
+        self.screen.blit(player1name, (self.player1.rect.topleft, self.player1.rect.bottomright))
         self.screen.blit(self.player2.image, self.player2.rect)
+        player2name = SMALL_SMALL_FONT.render(f"{PLAYER2}", True, BLACK)
+        self.screen.blit(player2name, (self.player2.rect.topleft, self.player2.rect.bottomright))
         self.balls.draw(self.screen)
         self.powerups.draw(self.screen)
 
@@ -383,7 +389,7 @@ class Game:
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_r:  # Restart the game
                         self.level_index = 0 # reset to first level
-                        self.__init__(self.ball_color, self.difficulty)  # Reinitialize the game with stored values
+                        self.__init__(self.ball_color, self.difficulty, self.PLAYER1, self.PLAYER2)  # Reinitialize the game with stored values
                         self.run()  # Restart the game loop
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
@@ -393,8 +399,8 @@ class Game:
         instruction()
         while True:
             self.handle_events()
-            self.update()
-            self.draw()
+            self.update(self.PLAYER1 ,self.PLAYER2)
+            self.draw(self.PLAYER1, self.PLAYER2)
             self.clock.tick(60)
     
    
