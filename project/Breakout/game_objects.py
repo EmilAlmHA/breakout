@@ -72,7 +72,8 @@ class Ball(pygame.sprite.Sprite):
             self.speed_y = -abs(self.speed_y)
             # Adjust X velocity based on where the ball hit the paddle
             self.speed_x = hit_pos * 5  # Tweak multiplier for difficulty
-            self.speed_y += random.uniform(-0.5, -0.2)  
+            self.speed_y += random.uniform(-0.2, -0.1)  
+            self.rect.bottom = paddle.rect.top  # Ensure the ball stays above the paddle
             pygame.mixer.Channel(1).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
 
 

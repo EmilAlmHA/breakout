@@ -3,12 +3,8 @@ import sys
 import random
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, SMALL_SMALL_FONT, WHITE, BLACK, RED, GREEN, BLUE, break_block
 from game_objects import GameObject, Ball, instruction, PowerUp
-from maps import MAP_TEMPLATES, BLOCK_TYPES  # Ensure BLOCK_TYPES is defined in maps.py
-import pygame_menu
+from maps import MAP_TEMPLATES, BLOCK_TYPES  
 import os
-import pygame.locals
-
-background = pygame.image.load("fire.png")
 
 class Game:
     def __init__(self, ball_color, difficulty):
@@ -50,13 +46,18 @@ class Game:
         self.score = 0  # Initialize score for current run
         self.high_score = self.load_high_score() # Load high score from highscore.txt
 
+        self.background = pygame.image.load("fire.png").convert()
+        self.brick_sound = pygame.mixer.Sound('bricks.wav')
+        self.bounce_sound = pygame.mixer.Sound('boing.wav')
+        self.music = 'Pixel-Peeker-Polka.wav'
+        pygame.mixer.music.load(self.music)
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1)
+
     def load_map(self, template):
         # Generate blocks based on the map template.
         block_width = SCREEN_WIDTH // len(template[0])  # Calculate block width
         block_height = 20  # Fixed block height
-        pygame.mixer.music.load('Pixel-Peeker-Polka.wav')
-        pygame.mixer.music.set_volume(0.5)
-        pygame.mixer.music.play(-1)
 
         for row_index, row in enumerate(template):
             for col_index, cell in enumerate(row):
@@ -120,21 +121,18 @@ class Game:
 
     def explode_blocks(self, center_block):
         cx, cy = center_block.rect.center
-        bw = center_block.rect.width + 4  # block width + 4px gap
-        bh = center_block.rect.height + 4  # block height + 4px gap
+        max_dist_x = center_block.rect.width + 4
+        max_dist_y = center_block.rect.height + 4
 
-        to_remove = []
+        # Only check nearby blocks
+        nearby_blocks = [
+            block for block in self.objects_group
+            if abs(cx - block.rect.centerx) <= max_dist_x and abs(cy - block.rect.centery) <= max_dist_y
+        ]
 
-        for other_block in list(self.objects_group):
-            dx = abs(cx - other_block.rect.centerx)
-            dy = abs(cy - other_block.rect.centery)
-
-            if dx <= bw and dy <= bh:
-                to_remove.append(other_block)
-
-        for b in to_remove:
-            self.objects_group.remove(b)
-            self.score += b.modifiers.get("score", 10)
+        for block in nearby_blocks:
+            self.objects_group.remove(block)
+            self.score += block.modifiers.get("score", 10)
 
 
 
@@ -159,7 +157,7 @@ class Game:
                 random.choice([-3, 3]), random.choice([-3, 3]),  # Random speed
                 10, self.ball_color
             )
-            self.balls.append(new_ball)  # Add the new ball to the list of balls
+            self.balls.add(new_ball)  # Add the new ball to the list of balls
 
     
     def instructions(self):
@@ -167,6 +165,10 @@ class Game:
     
 
     def update(self):
+        self.balls.update()
+        self.objects_group.update()
+        self.powerups.update()
+
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             if self.player2.rect.left > self.player1.rect.right:
@@ -322,7 +324,7 @@ class Game:
 
     def draw(self):
         self.screen.fill(BLACK)
-        self.screen.blit(background, (0, 50))
+        self.screen.blit(self.background, (0, 50))
         self.objects_group.draw(self.screen)
         self.screen.blit(self.player1.image, self.player1.rect)
         self.screen.blit(self.player2.image, self.player2.rect)
@@ -396,5 +398,4 @@ class Game:
             self.update()
             self.draw()
             self.clock.tick(60)
-    
-   
+
