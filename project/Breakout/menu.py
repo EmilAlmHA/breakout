@@ -44,12 +44,10 @@ def set_players(number, set_players):
 def set_name1(name):
     global PLAYER1
     PLAYER1 = name
-    print(PLAYER1)
 
 def set_name2(name):
     global PLAYER2
     PLAYER2 = name
-    print(PLAYER2)
 
 def start_game():
     pygame.time.wait(500)
@@ -66,7 +64,7 @@ def menu(players):
         menu.add.selector('Players:',[('1', 1), ('2', 2)], default=0, onchange=set_players)
         menu.add.text_input('Name: ', default='Player 1', onchange=set_name1)
    
-    if(players==2):
+    else:
         menu.add.selector('Players:',[('1', 1), ('2', 2)], default=1)
         menu.add.text_input('Name: ', default='Player 1', onchange=set_name1)
         menu.add.text_input('Name: ', default='Player 2', onchange=set_name2)         
