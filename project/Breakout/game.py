@@ -228,7 +228,8 @@ class Game:
 
         new_balls = pygame.sprite.Group()
         for ball in self.balls:
-            spawned_ball = ball.move(self.player1, self.objects_group)
+            # Pass both Player 1 and Player 2 paddles to the move method
+            spawned_ball = ball.move(self.player1, self.player2, self.objects_group)
             if spawned_ball:
                 new_balls.add(spawned_ball)
 

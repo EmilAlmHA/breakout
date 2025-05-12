@@ -5,7 +5,7 @@ from settings import SCREEN_WIDTH, SCREEN_HEIGHT, bounce_paddel
 class GameObject(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height, color, speed=0, durability=1, modifiers=None):
         super().__init__()
-        self.image = pygame.Surface((width-1, height-1))
+        self.image = pygame.Surface((width - 1, height - 1))
         self.image.fill(color)
         self.rect = self.image.get_rect(topleft=(x, y))
         self.speed = speed
@@ -21,6 +21,9 @@ class GameObject(pygame.sprite.Sprite):
         else:
             self.image.fill(color)
 
+        # Add a symbol if the block has a power-up effect
+        if "effect" in self.modifiers:
+            self.add_symbol(self.modifiers["effect"])
 
     def update_appearance(self):
         # Reverse the brightness: higher durability = darker
@@ -29,6 +32,20 @@ class GameObject(pygame.sprite.Sprite):
         faded_color = tuple(int(c * darkness_factor) for c in self.base_color)
         self.image.fill(faded_color)
 
+    def add_symbol(self, effect):
+        """Add a symbol to the block based on its effect."""
+        font = pygame.font.Font(None, 14)  # Adjust font size as needed
+        symbol = ""
+        if effect == "paddle_enlarge":
+            symbol = "L"  # L for Enlarge
+        elif effect == "spawn_ball":
+            symbol = "B"  # B for Ball
+        elif effect == "explosive":
+            symbol = "E"  # E for Explosive
+
+        text = font.render(symbol, True, (0, 0, 0))  # Black text
+        text_rect = text.get_rect(center=(self.image.get_width() // 2, self.image.get_height() // 2))
+        self.image.blit(text, text_rect)
 
     def move(self, direction=None, screen_width=SCREEN_WIDTH):
         if direction == "left":
@@ -52,29 +69,51 @@ class Ball(pygame.sprite.Sprite):
         self.speed_x = speed_x
         self.speed_y = speed_y
         self.mask = pygame.mask.from_surface(self.image)
+        self.bounce_sound = pygame.mixer.Sound('boing.wav')  # Load sound once
 
-    def move(self, paddle, objects_group):
+    def move(self, paddle1, paddle2, objects_group):
         self.rect.x += self.speed_x
         self.rect.y += self.speed_y
         if self.speed_x == 0 and self.speed_y == 0:
             return
 
         # Bounce off walls
-        if self.rect.left <= 0 or self.rect.right >= SCREEN_WIDTH:
+        if self.rect.left <= 0:
+            self.rect.left = 0  # Ensure the ball stays within the left boundary
             self.speed_x = -self.speed_x
+        elif self.rect.right >= SCREEN_WIDTH:
+            self.rect.right = SCREEN_WIDTH  # Ensure the ball stays within the right boundary
+            self.speed_x = -self.speed_x
+
         if self.rect.top <= 0:
+            self.rect.top = 0  # Ensure the ball stays within the top boundary
             self.speed_y = -self.speed_y
 
-        # Bounce off paddle
-        if pygame.sprite.collide_mask(self, paddle):
-            # Calculate hit position: distance from paddle center (normalized -1 to 1)
-            hit_pos = (self.rect.centerx - paddle.rect.centerx) / (paddle.rect.width / 2)
-            self.speed_y = -abs(self.speed_y)
-            # Adjust X velocity based on where the ball hit the paddle
-            self.speed_x = hit_pos * 5  # Tweak multiplier for difficulty
-            self.speed_y += random.uniform(-0.2, -0.1)  
-            self.rect.bottom = paddle.rect.top  # Ensure the ball stays above the paddle
-            pygame.mixer.Channel(1).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
+        # Bounce off Player 1 paddle
+        if pygame.sprite.collide_mask(self, paddle1):
+            self.handle_paddle_collision(paddle1)
+
+        # Bounce off Player 2 paddle
+        if pygame.sprite.collide_mask(self, paddle2):
+            self.handle_paddle_collision(paddle2)
+
+    def handle_paddle_collision(self, paddle):
+        """Handle collision with a paddle."""
+        # Check if the ball is inside the paddle and reposition it
+        if self.rect.bottom > paddle.rect.top:
+            self.rect.bottom = paddle.rect.top  # Place the ball on top of the paddle
+
+        # Calculate hit position: distance from paddle center (normalized -1 to 1)
+        hit_pos = (self.rect.centerx - paddle.rect.centerx) / (paddle.rect.width / 2)
+        self.speed_y = -abs(self.speed_y)  # Always bounce upward
+        # Adjust X velocity based on where the ball hit the paddle
+        self.speed_x = hit_pos * 5  # Tweak multiplier for difficulty
+        self.speed_x = max(-7, min(7, self.speed_x))  # Clamp horizontal speed
+        self.speed_y += random.uniform(-0.3, -0.1)  # Add slight randomness to vertical speed
+
+        # Play bounce sound
+        pygame.mixer.Channel(1).play(self.bounce_sound, maxtime=600)
+
 
 
 class PowerUp(pygame.sprite.Sprite):
@@ -84,8 +123,26 @@ class PowerUp(pygame.sprite.Sprite):
         self.image.fill(color)
         self.rect = self.image.get_rect(topleft=(x, y))
         self.effect = effect
-        self.speed = 2
+        self.speed = 1
         self.mask = pygame.mask.from_surface(self.image)
+
+        # Add a symbol to the power-up
+        self.add_symbol(effect)
+
+    def add_symbol(self, effect):
+        """Add a symbol to the power-up based on its effect."""
+        font = pygame.font.Font(None, 12)  # Adjust font size as needed
+        symbol = ""
+        if effect == "paddle_enlarge":
+            symbol = "L"  # L for Enlarge
+        elif effect == "spawn_ball":
+            symbol = "B"  # B for Ball
+        elif effect == "explosive":
+            symbol = "E"  # E for Explosive
+
+        text = font.render(symbol, True, (0, 0, 0))  # Black text
+        text_rect = text.get_rect(center=(self.image.get_width() // 2, self.image.get_height() // 2))
+        self.image.blit(text, text_rect)
 
     def update(self):
         self.rect.y += self.speed
