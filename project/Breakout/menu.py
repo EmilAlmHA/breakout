@@ -7,6 +7,7 @@ from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BALL_COLORS
 # Global variables for menu settings
 difficulty = 2
 ball_color = BALL_COLORS[0]
+players = 1
 PLAYER1 = 'Player 1'
 PLAYER2 = 'Player 2'
 pygame.joystick.init()
@@ -33,6 +34,13 @@ def set_color(color_index, set_color):
     global ball_color
     ball_color = BALL_COLORS[set_color - 1]
 
+def set_players(number, set_players):
+    global players
+    players = number
+    players = players[1] + 1
+    menu(players)
+    return
+
 def set_name1(name):
     global PLAYER1
     PLAYER1 = name
@@ -49,12 +57,15 @@ def start_game():
     game.run()
 
 
-def menu():
+def menu(players):
     surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     menu = pygame_menu.Menu('Welcome!', 400, 450, theme=pygame_menu.themes.THEME_BLUE)
     menu.add.button('Play', start_game)
+
+    menu.add.selector('Players:',[('1', 1), ('2', 2)], default=1, onchange=set_players)
     menu.add.text_input('Name: ', default='Player 1', onchange=set_name1)
-    menu.add.text_input('Name: ', default='Player 2', onchange=set_name2)
+    menu.add.text_input('Name: ', default='Player 2', onchange=set_name2)    
+    
     menu.add.selector('Difficulty: ', [('Hard', 4), ('Medium', 3), ('Easy', 2), ('Baby', 1)], onchange=set_difficulty)
     menu.add.selector('Color', [('Red', 1), ('Green', 2), ('Blue', 3), ('White', 4), ('Black', 5)], onchange=set_color)
     menu.add.button('Quit', pygame_menu.events.EXIT)

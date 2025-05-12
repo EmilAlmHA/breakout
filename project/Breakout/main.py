@@ -1,4 +1,4 @@
-from menu import menu
+from menu import menu, players
 
 if __name__ == "__main__":
-    menu()
+    menu(players)
