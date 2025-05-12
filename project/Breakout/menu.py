@@ -62,10 +62,15 @@ def menu(players):
     menu = pygame_menu.Menu('Welcome!', 400, 450, theme=pygame_menu.themes.THEME_BLUE)
     menu.add.button('Play', start_game)
 
-    menu.add.selector('Players:',[('1', 1), ('2', 2)], default=1, onchange=set_players)
-    menu.add.text_input('Name: ', default='Player 1', onchange=set_name1)
-    menu.add.text_input('Name: ', default='Player 2', onchange=set_name2)    
-    
+    if (players==1):
+        menu.add.selector('Players:',[('1', 1), ('2', 2)], default=0, onchange=set_players)
+        menu.add.text_input('Name: ', default='Player 1', onchange=set_name1)
+   
+    if(players==2):
+        menu.add.selector('Players:',[('1', 1), ('2', 2)], default=1)
+        menu.add.text_input('Name: ', default='Player 1', onchange=set_name1)
+        menu.add.text_input('Name: ', default='Player 2', onchange=set_name2)         
+
     menu.add.selector('Difficulty: ', [('Hard', 4), ('Medium', 3), ('Easy', 2), ('Baby', 1)], onchange=set_difficulty)
     menu.add.selector('Color', [('Red', 1), ('Green', 2), ('Blue', 3), ('White', 4), ('Black', 5)], onchange=set_color)
     menu.add.button('Quit', pygame_menu.events.EXIT)
