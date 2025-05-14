@@ -99,21 +99,31 @@ class Ball(pygame.sprite.Sprite):
 
     def handle_paddle_collision(self, paddle):
         """Handle collision with a paddle."""
-        # Check if the ball is inside the paddle and reposition it
         if self.rect.bottom > paddle.rect.top:
-            self.rect.bottom = paddle.rect.top  # Place the ball on top of the paddle
+            self.rect.bottom = paddle.rect.top
 
-        # Calculate hit position: distance from paddle center (normalized -1 to 1)
+        # Calculate normalized hit position (-1.0 to 1.0)
         hit_pos = (self.rect.centerx - paddle.rect.centerx) / (paddle.rect.width / 2)
-        self.speed_y = -abs(self.speed_y)  # Always bounce upward
-        # Adjust X velocity based on where the ball hit the paddle
-        self.speed_x = hit_pos * 5  # Tweak multiplier for difficulty
-        self.speed_x = max(-7, min(7, self.speed_x))  # Clamp horizontal speed
-        self.speed_y += random.uniform(-0.3, -0.1)  # Add slight randomness to vertical speed
+
+        # Base bounce: upward and angled based on hit position
+        base_speed = max(abs(self.speed_x), abs(self.speed_y))
+
+        # Apply speed increase
+        speed_gain = 0.3  # You can adjust this
+        new_speed = base_speed + speed_gain
+
+        # Direction determined by hit_pos
+        self.speed_x = hit_pos * new_speed
+        self.speed_x = max(-10, min(10, self.speed_x))  # Clamp for control
+
+        self.speed_y = -abs(new_speed)  # Always bounce upward with new speed
+
+        # Optional vertical variation
+        self.speed_y += random.uniform(-0.3, -0.1)
+
 
         # Play bounce sound
         pygame.mixer.Channel(1).play(self.bounce_sound, maxtime=600)
-
 
 
 class PowerUp(pygame.sprite.Sprite):
@@ -174,3 +184,21 @@ class instruction:
         surface.blit(text3, textRect3)
             
         pygame.display.update()
+
+class ExplosionEffect:
+    def __init__(self, pos, size, lifetime=200):
+        self.rect = pygame.Rect(pos, size)
+        self.color = (255, 100, 0)
+        self.start_time = pygame.time.get_ticks()
+        self.lifetime = lifetime
+
+    def draw(self, surface):
+        elapsed = pygame.time.get_ticks() - self.start_time
+        if elapsed > self.lifetime:
+            return False
+        alpha = max(0, 255 - int(255 * (elapsed / self.lifetime)))
+
+        temp_surface = pygame.Surface(self.rect.size, pygame.SRCALPHA)
+        temp_surface.fill((*self.color, alpha))
+        surface.blit(temp_surface, self.rect.topleft)
+        return True

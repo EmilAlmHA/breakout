@@ -2,7 +2,7 @@ import pygame
 import sys
 import random
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, SMALL_SMALL_FONT, WHITE, BLACK, RED, GREEN, BLUE, break_block
-from game_objects import GameObject, Ball, instruction, PowerUp
+from game_objects import GameObject, Ball, instruction, PowerUp, ExplosionEffect
 from maps import MAP_TEMPLATES, BLOCK_TYPES  
 import os
 
@@ -21,7 +21,9 @@ class Game:
         self.player2 = GameObject(320, int(SCREEN_HEIGHT * 0.8), 100, 20, GREEN, 5)
         self.objects_group = pygame.sprite.Group()
         self.powerups = pygame.sprite.Group()
+        self.explosions = []
 
+        self.instructions = True
         self.level_index = 0
         self.map_templates = random.sample(MAP_TEMPLATES, len(MAP_TEMPLATES))
         self.load_map(self.map_templates[self.level_index])
@@ -31,8 +33,8 @@ class Game:
         self.joystick1 = None
         self.joystick2 = None
         if pygame.joystick.get_count() > 0:
-            self.joystick = pygame.joystick.Joystick(0)
-            self.joystick.init()
+            self.joystick1 = pygame.joystick.Joystick(0)
+            self.joystick1.init()
 
         if pygame.joystick.get_count() > 1:
             self.joystick2 = pygame.joystick.Joystick(1)
@@ -123,19 +125,34 @@ class Game:
 
     def explode_blocks(self, center_block):
         cx, cy = center_block.rect.center
-        max_dist_x = center_block.rect.width + 4
-        max_dist_y = center_block.rect.height + 4
+        bw = center_block.rect.width + 4
+        bh = center_block.rect.height + 4
 
-        # Only check nearby blocks
-        nearby_blocks = [
-            block for block in self.objects_group
-            if abs(cx - block.rect.centerx) <= max_dist_x and abs(cy - block.rect.centery) <= max_dist_y
+        to_remove = [
+        block for block in list(self.objects_group)
+        if abs(cx - block.rect.centerx) <= bw and abs(cy - block.rect.centery) <= bh
         ]
 
-        for block in nearby_blocks:
-            self.objects_group.remove(block)
-            self.score += block.modifiers.get("score", 10)
+        for block in to_remove:
+            self.explosions.append(ExplosionEffect(block.rect.topleft, block.rect.size))
 
+            effect = block.modifiers.get("effect")
+            if effect == "explosive" and block != center_block:
+                self.explode_blocks(block)  # Chain reaction
+            self.score += block.modifiers.get("score", 10)
+            self.objects_group.remove(block)
+            pygame.mixer.Channel(0).play(self.brick_sound, maxtime=600)
+
+    def trigger_powerup(self, block):
+        """Trigger the power-up effect of a block, if it has one."""
+        effect = block.modifiers.get("effect")
+        
+        if effect == "explosive":
+            return
+        
+        if effect:
+            powerup = PowerUp(block.rect.x, block.rect.y, effect, color=block.base_color)
+            self.powerups.add(powerup)
 
 
     def enlarge_paddle(self):
@@ -248,22 +265,15 @@ class Game:
                 if hasattr(block, "durability"):
                     block.durability -= 1
                     if block.durability <= 0:
-                        score_gain = block.modifiers.get("score", 10)
-                        self.score += score_gain
-
-                        # Drop a power-up for some effects
-                        effect = block.modifiers.get("effect")
-                        if effect in ["paddle_enlarge", "spawn_ball"]:
-                            powerup = PowerUp(block.rect.x, block.rect.y, effect, color=block.base_color)
-                            self.powerups.add(powerup)
-                        elif effect == "explosive":
+                        if block.modifiers.get("effect") == "explosive":
                             self.explode_blocks(block)
-                        effect = block.modifiers.get("effect")
-
+                        self.trigger_powerup(block)  # Trigger the power-up before removing the block
                         self.objects_group.remove(block)
-                        pygame.mixer.Channel(0).play(pygame.mixer.Sound('bricks.wav'), maxtime=600)
+                        self.score += block.modifiers.get("score", 10)
+                        pygame.mixer.Channel(0).play(self.brick_sound, maxtime=600)
                     else:
                         block.update_appearance()
+
                 if abs(ball.rect.bottom - block.rect.top) < 10 and ball.speed_y > 0:
                     ball.speed_y = -abs(ball.speed_y) # hitting the block from above
                 elif abs(ball.rect.top - block.rect.bottom) < 10 and ball.speed_y < 0:
@@ -374,6 +384,10 @@ class Game:
         high_score_text = SMALL_SMALL_FONT.render(f"High Score: {self.high_score}", True, GREEN)
         self.screen.blit(high_score_text, (10, 25))  # Position below the score
         
+        for explosion in self.explosions[:]:
+            if not explosion.draw(self.screen):
+                self.explosions.remove(explosion)
+
         pygame.display.update()
 
     def play_again(self):
@@ -392,8 +406,6 @@ class Game:
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_r:  # Restart the game
                         self.level_index = 0 # reset to first level
-                        self.__init__(self.ball_color, self.difficulty, self.PLAYER1, self.PLAYER2)  # Reinitialize the game with stored values
-                        self.run()  # Restart the game loop
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         sys.exit()
