@@ -1,7 +1,7 @@
 import pygame
 import sys
 import random
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, SMALL_SMALL_FONT, WHITE, BLACK, RED, GREEN, BLUE, break_block
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, SMALL_SMALL_FONT, WHITE, BLACK, RED, GREEN, BLUE
 from game_objects import GameObject, Ball, instruction, PowerUp, ExplosionEffect
 from maps import MAP_TEMPLATES, BLOCK_TYPES  
 import os
@@ -402,9 +402,11 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
-                elif event.type == pygame.KEYDOWN:
+                if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_r:  # Restart the game
                         self.level_index = 0 # reset to first level
+                        self.lives = 4
+                        self.run()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         sys.exit()

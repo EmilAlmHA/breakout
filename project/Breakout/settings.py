@@ -21,7 +21,7 @@ SMALL_SMALL_FONT = pygame.font.Font(None, 20)
 #Sounds
 bounce_paddel = pygame.mixer.Sound("boing.wav")
 
-break_block = pygame.mixer.Sound("breaking-a-vase.wav")
+#break_block = pygame.mixer.Sound("breaking-a-vase.wav")
 
 #Name
 PLAYER1 = SMALL_SMALL_FONT, BLACK
