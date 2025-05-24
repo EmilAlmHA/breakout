@@ -38,7 +38,7 @@ def set_players(number, set_players):
     global players
     players = number
     players = players[1] + 1
-    menu(players)
+    menu()
     return
 
 def set_name1(name):
@@ -51,11 +51,11 @@ def set_name2(name):
 
 def start_game():
     pygame.time.wait(500)
-    game = Game(ball_color, difficulty, PLAYER1, PLAYER2)
-    game.run()
+    game = Game(ball_color, difficulty, players, PLAYER1, PLAYER2)
+    game.run(players)
 
 
-def menu(players):
+def menu():
     surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     menu = pygame_menu.Menu('Welcome!', 400, 450, theme=pygame_menu.themes.THEME_BLUE)
     menu.add.button('Play', start_game)

@@ -7,18 +7,26 @@ from maps import MAP_TEMPLATES, BLOCK_TYPES
 import os
 
 class Game:
-    def __init__(self, ball_color, difficulty, PLAYER1, PLAYER2):
+    def __init__(self, ball_color, difficulty, players, PLAYER1, PLAYER2):
         self.ball_color = ball_color  # Store ball_color
         self.difficulty = difficulty  # Store difficulty
-        self.PLAYER1 = PLAYER1
-        self.PLAYER2 = PLAYER2
-        print(PLAYER1, PLAYER2)
+        if (players == 1):
+            self.PLAYER1 = PLAYER1
+            self.PLAYER2 = PLAYER2
+        else:
+            self.PLAYER1 = PLAYER1
+            self.PLAYER2 = PLAYER2
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.clock = pygame.time.Clock()
-        self.player1 = GameObject(120, int(SCREEN_HEIGHT * 0.8), 100, 20, BLUE, 5)
-        self.objects_group = pygame.sprite.Group()
-        self.player2 = GameObject(320, int(SCREEN_HEIGHT * 0.8), 100, 20, GREEN, 5)
-        self.objects_group = pygame.sprite.Group()
+        if(players == 1):
+            self.player1 = GameObject(250, int(SCREEN_HEIGHT * 0.8), 150, 20, BLUE, 5)
+            self.objects_group = pygame.sprite.Group()
+            self.player2 = GameObject(520000, int(SCREEN_HEIGHT * 0.8), 100, 20, GREEN, 5)
+        else:
+            self.player1 = GameObject(120, int(SCREEN_HEIGHT * 0.8), 100, 20, BLUE, 5)
+            self.objects_group = pygame.sprite.Group()
+            self.player2 = GameObject(320, int(SCREEN_HEIGHT * 0.8), 100, 20, GREEN, 5)
+            self.objects_group = pygame.sprite.Group()
         self.powerups = pygame.sprite.Group()
         self.explosions = []
 
@@ -154,17 +162,24 @@ class Game:
             self.powerups.add(powerup)
 
 
-    def enlarge_paddle(self):
+    def enlarge_paddle(self, players):
         """Increase the paddle size."""
-        self.player1.rect.width += 20
-        self.player1.image = pygame.Surface((self.player1.rect.width, self.player1.rect.height))
-        self.player1.image.fill(BLUE)
-        self.player1.mask = pygame.mask.from_surface(self.player1.image)
+        if(players == 1):
+            self.player1.rect.width += 50
+            self.player1.image = pygame.Surface((self.player1.rect.width, self.player1.rect.height))
+            self.player1.image.fill(BLUE)
+            self.player1.mask = pygame.mask.from_surface(self.player1.image)
 
-        self.player2.rect.width += 20
-        self.player2.image = pygame.Surface((self.player2.rect.width, self.player2.rect.height))
-        self.player2.image.fill(GREEN)
-        self.player2.mask = pygame.mask.from_surface(self.player2.image)
+        else:
+            self.player1.rect.width += 20
+            self.player1.image = pygame.Surface((self.player1.rect.width, self.player1.rect.height))
+            self.player1.image.fill(BLUE)
+            self.player1.mask = pygame.mask.from_surface(self.player1.image)
+
+            self.player2.rect.width += 20
+            self.player2.image = pygame.Surface((self.player2.rect.width, self.player2.rect.height))
+            self.player2.image.fill(GREEN)
+            self.player2.mask = pygame.mask.from_surface(self.player2.image)
 
     def spawn_ball(self):
         """Spawn an additional ball."""
@@ -182,7 +197,7 @@ class Game:
         """"""
     
 
-    def update(self, PLAYER1, PLAYER2):
+    def update(self, PLAYER1, PLAYER2, players):
         self.balls.update()
         self.objects_group.update()
         self.powerups.update()
@@ -190,9 +205,15 @@ class Game:
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             if self.player2.rect.left > self.player1.rect.right:
-                self.player2.move("left", SCREEN_WIDTH)
+                if (players == 1):
+                    self.player2.move("left", SCREEN_WIDTH + 10000)
+                else:
+                    self.player2.move("left", SCREEN_WIDTH)
         if keys[pygame.K_RIGHT]:
-            self.player2.move("right", SCREEN_WIDTH)
+            if (players == 1):
+                self.player2.move("right", SCREEN_WIDTH + 10000)
+            else:
+                self.player2.move("right", SCREEN_WIDTH)
 
         if keys[pygame.K_a]:
             self.player1.move("left", SCREEN_WIDTH)
@@ -226,9 +247,14 @@ class Game:
                 axis_x2 = self.joystick2.get_axis(0)
                 if axis_x2 < -0.5:
                     if self.player1.rect.right < self.player2.rect.left:
-                        self.player2.move("left", SCREEN_WIDTH)
-                if axis_x2 > 0.5: self.player2.move("right", SCREEN_WIDTH)
-
+                        if(players == 1):
+                            self.player2.move("left", SCREEN_WIDTH + 10000)
+                        else:
+                            self.player2.move("left", SCREEN_WIDTH)
+                if (players >= 1):
+                    if axis_x2 > 0.5: self.player2.move("right", SCREEN_WIDTH + 10000)
+                else:
+                    if axis_x2 > 0.5: self.player2.move("right", SCREEN_WIDTH)
         if self.ball_attached:
             for ball in self.balls:
                 ball.rect.midbottom = (self.player1.rect.centerx, self.player1.rect.top - 1)
@@ -290,7 +316,7 @@ class Game:
             for powerup in list(self.powerups):
                 if pygame.sprite.collide_mask(powerup, self.player1) or pygame.sprite.collide_mask(powerup, self.player2):
                     if powerup.effect == "paddle_enlarge":
-                        self.enlarge_paddle()
+                        self.enlarge_paddle(players)
                     elif powerup.effect == "spawn_ball":
                         new_ball = Ball(powerup.rect.centerx, powerup.rect.centery, random.choice([-3, 3]), -3, 10, self.ball_color)
                         self.balls.add(new_ball)
@@ -334,16 +360,21 @@ class Game:
                 return
     
 
-    def draw(self, PLAYER1, PLAYER2):
+    def draw(self, PLAYER1, PLAYER2, players):
         self.screen.fill(BLACK)
         self.screen.blit(self.background, (0, 50))
         self.objects_group.draw(self.screen)
-        self.screen.blit(self.player1.image, self.player1.rect)
-        player1name = SMALL_SMALL_FONT.render(f"{PLAYER1}", True, WHITE)
-        self.screen.blit(player1name, (self.player1.rect.topleft, self.player1.rect.bottomright))
-        self.screen.blit(self.player2.image, self.player2.rect)
-        player2name = SMALL_SMALL_FONT.render(f"{PLAYER2}", True, BLACK)
-        self.screen.blit(player2name, (self.player2.rect.topleft, self.player2.rect.bottomright))
+        if(players == 1):
+            self.screen.blit(self.player1.image, self.player1.rect)
+            player1name = SMALL_SMALL_FONT.render(f"{PLAYER1}", True, WHITE)
+            self.screen.blit(player1name, (self.player1.rect.topleft, self.player1.rect.bottomright))
+        else:
+            self.screen.blit(self.player1.image, self.player1.rect)
+            player1name = SMALL_SMALL_FONT.render(f"{PLAYER1}", True, WHITE)
+            self.screen.blit(player1name, (self.player1.rect.topleft, self.player1.rect.bottomright))
+            self.screen.blit(self.player2.image, self.player2.rect)
+            player2name = SMALL_SMALL_FONT.render(f"{PLAYER2}", True, BLACK)
+            self.screen.blit(player2name, (self.player2.rect.topleft, self.player2.rect.bottomright))
         self.balls.draw(self.screen)
         self.powerups.draw(self.screen)
 
@@ -411,11 +442,15 @@ class Game:
                     if event.key == pygame.K_ESCAPE:
                         sys.exit()
 
-    def run(self):
+    def run(self, players):
         instruction()
         while True:
             self.handle_events()
-            self.update(self.PLAYER1 ,self.PLAYER2)
-            self.draw(self.PLAYER1, self.PLAYER2)
+            if (players == 1):
+                self.update(self.PLAYER1, self.PLAYER2, players)
+                self.draw(self.PLAYER1, self.player2, players)
+            else:
+                self.update(self.PLAYER1 ,self.PLAYER2, players)
+                self.draw(self.PLAYER1, self.PLAYER2, players)
             self.clock.tick(60)
 
