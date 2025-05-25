@@ -1,6 +1,7 @@
 import pygame
 import pygame_menu
 import pygame_menu.controls as ctrl
+import pygame_menu.menu
 from game import Game
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BALL_COLORS
 
@@ -34,12 +35,13 @@ def set_color(color_index, set_color):
     global ball_color
     ball_color = BALL_COLORS[set_color - 1]
 
-def set_players(number, set_players):
+def set_players(set_players, number):
     global players
     players = number
-    players = players[1] + 1
-    menu()
-    return
+    if players == 1:
+        input_name2.hide()
+    else:
+        input_name2.show()
 
 def set_name1(name):
     global PLAYER1
@@ -59,15 +61,14 @@ def menu():
     surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     menu = pygame_menu.Menu('Welcome!', 400, 450, theme=pygame_menu.themes.THEME_BLUE)
     menu.add.button('Play', start_game)
+    menu.add.selector('Players:',[('1', 1), ('2', 2)], default=players-1, onchange=set_players)
+    
+    global input_name1, input_name2
+    input_name1 = menu.add.text_input('Name: ', default=PLAYER1, onchange=set_name1)
+    input_name2 = menu.add.text_input('Name: ', default=PLAYER2, onchange=set_name2)
 
-    if (players==1):
-        menu.add.selector('Players:',[('1', 1), ('2', 2)], default=0, onchange=set_players)
-        menu.add.text_input('Name: ', default='Player 1', onchange=set_name1)
-   
-    else:
-        menu.add.selector('Players:',[('1', 1), ('2', 2)], default=1)
-        menu.add.text_input('Name: ', default='Player 1', onchange=set_name1)
-        menu.add.text_input('Name: ', default='Player 2', onchange=set_name2)         
+    if players == 1:
+        input_name2.hide()         
 
     menu.add.selector('Difficulty: ', [('Hard', 4), ('Medium', 3), ('Easy', 2), ('Baby', 1)], onchange=set_difficulty)
     menu.add.selector('Color', [('Red', 1), ('Green', 2), ('Blue', 3), ('White', 4), ('Black', 5)], onchange=set_color)
