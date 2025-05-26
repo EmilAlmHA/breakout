@@ -111,7 +111,7 @@ class Game:
             with open("highscore.txt", "w") as file:
                 file.write(str(self.high_score))
 
-    def wait(self):
+    def wait(self, players):
         text = SMALL_FONT.render('Paused, press UP KEY to continue', True, BLACK)
         textx = SCREEN_WIDTH / 2 - text.get_width() / 2
         texty = SCREEN_HEIGHT / 2 - text.get_height() / 2
@@ -124,7 +124,7 @@ class Game:
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:  # start the game
-                        self.run()  # start the game loop
+                        self.run(players)  # start the game loop
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:  # Exit game
                         sys.exit()
@@ -222,7 +222,7 @@ class Game:
                 self.player1.move("right", SCREEN_WIDTH)        
         
         if keys[pygame.K_SPACE]:
-            self.wait()
+            self.wait(players)
 
         if pygame.joystick.get_count() > 0:
         # Controller movement Player 1
