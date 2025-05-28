@@ -128,7 +128,8 @@ class Game:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:  # Exit game
                         sys.exit()
-                        
+                if self.joystick1.get_button(2):
+                    self.run(players)                        
 
     def explode_blocks(self, center_block):
         cx, cy = center_block.rect.center
@@ -226,16 +227,19 @@ class Game:
 
         if pygame.joystick.get_count() > 0:
         # Controller movement Player 1
-            if self.joystick:
-                axis_x = self.joystick.get_axis(0)  # D-pad left/right
+            if self.joystick1:
+                axis_x = self.joystick1.get_axis(0)  # D-pad left/right
                 if axis_x < -0.5:
                     self.player1.move("left", SCREEN_WIDTH)
                 elif axis_x > 0.5:
                     if self.player1.rect.right < self.player2.rect.left:
                         self.player1.move("right", SCREEN_WIDTH)
-
+                if self.joystick1.get_button(7):
+                    self.wait(players)
+                if self.joystick1.get_button(6):
+                    sys.exit()
             # Shoot with Triangle
-            if self.ball_attached and self.joystick.get_button(0):  
+            if self.ball_attached and self.joystick1.get_button(0):  
                 self.ball_attached = False
                 self.instructions = False
                 for ball in self.balls:
@@ -335,7 +339,7 @@ class Game:
             else:
                 print("Game Over!")
                 self.save_high_score()
-                self.play_again()
+                self.play_again(players)
                 pygame.time.wait(2000)
                 sys.exit()
 
@@ -420,7 +424,7 @@ class Game:
 
         pygame.display.update()
 
-    def play_again(self):
+    def play_again(self, players):
         text = BIG_FONT.render('Press R To Play Again', True, BLACK)
         textx = SCREEN_WIDTH / 2 - text.get_width() / 2
         texty = SCREEN_HEIGHT / 2 - text.get_height() / 2
@@ -437,7 +441,11 @@ class Game:
                     if event.key == pygame.K_r:  # Restart the game
                         self.level_index = 0 # reset to first level
                         self.lives = 4
-                        self.run()
+                        self.run(players)
+                if self.joystick1.get_button(3):
+                        self.level_index = 0 # reset to first level
+                        self.lives = 4
+                        self.run(players)
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         sys.exit()
