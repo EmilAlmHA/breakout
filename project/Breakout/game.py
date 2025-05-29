@@ -128,7 +128,7 @@ class Game:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:  # Exit game
                         sys.exit()
-                if self.joystick1.get_button(2):
+                if self.joystick1.get_button(2) or self.joystick2.get_button(2):
                     self.run(players)                        
 
     def explode_blocks(self, center_block):
@@ -234,9 +234,9 @@ class Game:
                 elif axis_x > 0.5:
                     if self.player1.rect.right < self.player2.rect.left:
                         self.player1.move("right", SCREEN_WIDTH)
-                if self.joystick1.get_button(7):
+                if self.joystick1.get_button(9) or self.joystick2.get_button(9):
                     self.wait(players)
-                if self.joystick1.get_button(6):
+                if self.joystick1.get_button(8) or self.joystick2.get_button(8):
                     sys.exit()
             # Shoot with Triangle
             if self.ball_attached and self.joystick1.get_button(0):  
@@ -249,16 +249,20 @@ class Game:
         # Controller movement for player 2
             if self.joystick2:
                 axis_x2 = self.joystick2.get_axis(0)
-                if axis_x2 < -0.5:
-                    if self.player1.rect.right < self.player2.rect.left:
-                        if(players == 1):
+                if(players == 1):
+                    if axis_x2 < -0.5:
+                        if self.player1.rect.right < self.player2.rect.left:
                             self.player2.move("left", SCREEN_WIDTH + 10000)
-                        else:
+                    if axis_x2 > 0.5: 
+                        self.player2.move("right", SCREEN_WIDTH + 10000)
+
+                elif(players == 2):
+                    if axis_x2 < -0.5:
+                        if self.player1.rect.right < self.player2.rect.left:
                             self.player2.move("left", SCREEN_WIDTH)
-                if (players >= 1):
-                    if axis_x2 > 0.5: self.player2.move("right", SCREEN_WIDTH + 10000)
-                else:
-                    if axis_x2 > 0.5: self.player2.move("right", SCREEN_WIDTH)
+                    elif axis_x2 > 0.5:
+                        self.player2.move("right", SCREEN_WIDTH)
+
         if self.ball_attached:
             for ball in self.balls:
                 ball.rect.midbottom = (self.player1.rect.centerx, self.player1.rect.top - 1)
@@ -340,7 +344,7 @@ class Game:
                 print("Game Over!")
                 self.save_high_score()
                 self.play_again(players)
-                pygame.time.wait(2000)
+                pygame.time.wait(200)
                 sys.exit()
 
         if not self.objects_group: # no blocks left
@@ -442,10 +446,11 @@ class Game:
                         self.level_index = 0 # reset to first level
                         self.lives = 4
                         self.run(players)
-                if self.joystick1.get_button(3):
-                        self.level_index = 0 # reset to first level
-                        self.lives = 4
-                        self.run(players)
+                if(pygame.joystick.get_count() > 0):
+                    if self.joystick1.get_button(3):
+                            self.level_index = 0 # reset to first level
+                            self.lives = 4
+                            self.run(players)
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         sys.exit()
