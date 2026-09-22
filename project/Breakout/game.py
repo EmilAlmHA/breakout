@@ -1,9 +1,10 @@
-import pygame
-import sys
+import asyncio
 import random
+
+import pygame
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, BIG_FONT, SMALL_FONT, SMALL_SMALL_FONT, WHITE, BLACK, RED, GREEN, BLUE
 from game_objects import GameObject, Ball, instruction, PowerUp, ExplosionEffect
-from maps import MAP_TEMPLATES, BLOCK_TYPES  
+from maps import MAP_TEMPLATES, BLOCK_TYPES
 import os
 
 class Game:
@@ -58,11 +59,13 @@ class Game:
         self.high_score = self.load_high_score() # Load high score from highscore.txt
 
         self.background = pygame.image.load("fire.png").convert()
-        self.brick_sound = pygame.mixer.Sound('bricks.wav')
-        self.bounce_sound = pygame.mixer.Sound('boing.wav')
-        self.music = 'Pixel-Peeker-Polka.wav'
+        self.brick_sound = pygame.mixer.Sound('bricks.ogg')
+        self.brick_sound.set_volume(0.4)
+        self.bounce_sound = pygame.mixer.Sound('boing.ogg')
+        self.bounce_sound.set_volume(0.4)
+        self.music = 'Pixel-Peeker-Polka.ogg'
         pygame.mixer.music.load(self.music)
-        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.set_volume(0.25)
         pygame.mixer.music.play(-1)
 
     def load_map(self, template):
@@ -74,28 +77,21 @@ class Game:
             for col_index, cell in enumerate(row):
                 if cell == -1:  # Random block
                     cell = random.choice(list(BLOCK_TYPES.keys()))  # Randomly choose a block type
-                
+
                 if cell in BLOCK_TYPES:  # If the cell represents a valid block type
                     block_type = BLOCK_TYPES[cell]
                     x = col_index * block_width
                     y = row_index * block_height
                     block = GameObject(
-                        x, y, 
-                        block_width, 
-                        block_height, 
+                        x, y,
+                        block_width,
+                        block_height,
                         block_type["color"],
                         durability=block_type.get("durability", 1),
                         modifiers={k: v for k, v in block_type.items() if k not in ["color", "durability"]}
                     )
                     self.objects_group.add(block)
-        
 
-    def handle_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                sys.exit()
 
     def load_high_score(self):
         """Load the high score from a file."""
@@ -111,25 +107,14 @@ class Game:
             with open("highscore.txt", "w") as file:
                 file.write(str(self.high_score))
 
-    def wait(self, players):
-        text = SMALL_FONT.render('Paused, press UP KEY to continue', True, BLACK)
+    def _draw_center_message(self, message, font=None):
+        font = font or SMALL_FONT
+        text = font.render(message, True, BLACK)
         textx = SCREEN_WIDTH / 2 - text.get_width() / 2
         texty = SCREEN_HEIGHT / 2 - text.get_height() / 2
         pygame.draw.rect(self.screen, WHITE, ((textx - 5, texty - 5), (text.get_width() + 10, text.get_height() + 10)))
         self.screen.blit(text, (textx, texty))
         pygame.display.update()
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_UP:  # start the game
-                        self.run(players)  # start the game loop
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:  # Exit game
-                        sys.exit()
-                if self.joystick1.get_button(2) or self.joystick2.get_button(2):
-                    self.run(players)                        
 
     def explode_blocks(self, center_block):
         cx, cy = center_block.rect.center
@@ -154,10 +139,10 @@ class Game:
     def trigger_powerup(self, block):
         """Trigger the power-up effect of a block, if it has one."""
         effect = block.modifiers.get("effect")
-        
+
         if effect == "explosive":
             return
-        
+
         if effect:
             powerup = PowerUp(block.rect.x, block.rect.y, effect, color=block.base_color)
             self.powerups.add(powerup)
@@ -193,12 +178,13 @@ class Game:
             )
             self.balls.add(new_ball)  # Add the new ball to the list of balls
 
-    
-    def instructions(self):
-        """"""
-    
 
     def update(self, PLAYER1, PLAYER2, players):
+        """Kor en bildrutas spellogik. Returnerar None som vanligt, eller
+        "gameover"/"won" nar omgangen ska ta slut, sa att run() (i stallet
+        for sys.exit()/rekursiva self.run()-anrop, vilket blockerar webblasaren)
+        kan visa ett meddelande och vanta pa R utan att avsluta processen.
+        """
         self.balls.update()
         self.objects_group.update()
         self.powerups.update()
@@ -220,10 +206,7 @@ class Game:
             self.player1.move("left", SCREEN_WIDTH)
         if keys[pygame.K_d]:
             if self.player1.rect.right < self.player2.rect.left:
-                self.player1.move("right", SCREEN_WIDTH)        
-        
-        if keys[pygame.K_SPACE]:
-            self.wait(players)
+                self.player1.move("right", SCREEN_WIDTH)
 
         if pygame.joystick.get_count() > 0:
         # Controller movement Player 1
@@ -234,12 +217,8 @@ class Game:
                 elif axis_x > 0.5:
                     if self.player1.rect.right < self.player2.rect.left:
                         self.player1.move("right", SCREEN_WIDTH)
-                if self.joystick1.get_button(9) or self.joystick2.get_button(9):
-                    self.wait(players)
-                if self.joystick1.get_button(8) or self.joystick2.get_button(8):
-                    sys.exit()
             # Shoot with Triangle
-            if self.ball_attached and self.joystick1.get_button(0):  
+            if self.ball_attached and self.joystick1.get_button(0):
                 self.ball_attached = False
                 self.instructions = False
                 for ball in self.balls:
@@ -253,7 +232,7 @@ class Game:
                     if axis_x2 < -0.5:
                         if self.player1.rect.right < self.player2.rect.left:
                             self.player2.move("left", SCREEN_WIDTH + 10000)
-                    if axis_x2 > 0.5: 
+                    if axis_x2 > 0.5:
                         self.player2.move("right", SCREEN_WIDTH + 10000)
 
                 elif(players == 2):
@@ -267,14 +246,14 @@ class Game:
             for ball in self.balls:
                 ball.rect.midbottom = (self.player1.rect.centerx, self.player1.rect.top - 1)
 
-            
+
             if keys[pygame.K_w]:
                 self.ball_attached = False # Shoot the ball
                 self.instructions = False
                 for ball in self.balls:
                     ball.speed_x = self.difficulty
                     ball.speed_y = -self.difficulty
-                    
+
 
         new_balls = pygame.sprite.Group()
         for ball in self.balls:
@@ -291,7 +270,7 @@ class Game:
                 ball.speed_x += random.uniform(0.2, 0.8)  # Add some randomness to the bounce
                 ball.speed_y += random.uniform(-0.8, -0.2)
                 if not pygame.mixer.Channel(1).get_busy():
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('boing.wav'), maxtime=600)
+                    _bounce = pygame.mixer.Sound('boing.ogg'); _bounce.set_volume(0.4); pygame.mixer.Channel(1).play(_bounce, maxtime=600)
 
             collided_objects = pygame.sprite.spritecollide(ball, self.objects_group, False, pygame.sprite.collide_mask)
             for block in collided_objects:
@@ -318,7 +297,7 @@ class Game:
                 else:
                     # Fallback if funkyness
                     ball.speed_y = -ball.speed_y
-                
+
             self.powerups.update()
 
             for powerup in list(self.powerups):
@@ -341,11 +320,8 @@ class Game:
                 self.balls.add(Ball(0, 0, 0, 0, 10, self.ball_color))
                 self.ball_attached = True
             else:
-                print("Game Over!")
                 self.save_high_score()
-                self.play_again(players)
-                pygame.time.wait(200)
-                sys.exit()
+                return "gameover"
 
         if not self.objects_group: # no blocks left
             self.level_index += 1
@@ -362,11 +338,11 @@ class Game:
                 self.balls.add(Ball(0, 0, 0, 0, 10, self.ball_color))
                 self.ball_attached = True
             else:
-                print("You completed all levels!")
                 self.save_high_score()
-                self.play_again()
-                return
-    
+                return "won"
+
+        return None
+
 
     def draw(self, PLAYER1, PLAYER2, players):
         self.screen.fill(BLACK)
@@ -421,49 +397,62 @@ class Game:
         # Real text
         high_score_text = SMALL_SMALL_FONT.render(f"High Score: {self.high_score}", True, GREEN)
         self.screen.blit(high_score_text, (10, 25))  # Position below the score
-        
+
         for explosion in self.explosions[:]:
             if not explosion.draw(self.screen):
                 self.explosions.remove(explosion)
 
         pygame.display.update()
 
-    def play_again(self, players):
-        text = BIG_FONT.render('Press R To Play Again', True, BLACK)
-        textx = SCREEN_WIDTH / 2 - text.get_width() / 2
-        texty = SCREEN_HEIGHT / 2 - text.get_height() / 2
-        pygame.draw.rect(self.screen, WHITE, ((textx - 5, texty - 5), (text.get_width() + 10, text.get_height() + 10)))
-        self.screen.blit(text, (textx, texty))
-        pygame.display.update()
+    async def run(self, players):
+        """Webbversion av spelloopen. Original-koden hade tre olika blockerande
+        while-loopar (spelloop, paus-loop i wait(), game-over-loop i play_again())
+        som anropade varandra rekursivt och avslutade processen med sys.exit().
+        Ingetdera funkar i en webblasare: en enda loop som "await asyncio.sleep(0)"
+        varje bildruta kravs, sa allt ar hopslaget till EN loop med ett litet
+        tillstand (paused/game_over_message) istallet.
+        """
+        paused = False
+        game_over_message = None
 
-        # Wait for the player to press R
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_r:  # Restart the game
-                        self.level_index = 0 # reset to first level
-                        self.lives = 4
-                        self.run(players)
-                if(pygame.joystick.get_count() > 0):
-                    if self.joystick1.get_button(3):
-                            self.level_index = 0 # reset to first level
-                            self.lives = 4
-                            self.run(players)
-                if event.type == pygame.KEYDOWN:
+                    return
+                elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        sys.exit()
+                        return
+                    if game_over_message and event.key == pygame.K_r:
+                        self.level_index = 0
+                        self.lives = 3
+                        self.score = 0
+                        self.map_templates = random.sample(MAP_TEMPLATES, len(MAP_TEMPLATES))
+                        self.objects_group = pygame.sprite.Group()
+                        self.load_map(self.map_templates[self.level_index])
+                        self.balls = pygame.sprite.Group()
+                        self.balls.add(Ball(0, 0, 0, 0, 10, self.ball_color))
+                        self.ball_attached = True
+                        game_over_message = None
+                    elif paused and event.key == pygame.K_UP:
+                        paused = False
 
-    def run(self, players):
-        instruction()
-        while True:
-            self.handle_events()
-            if (players == 1):
-                self.update(self.PLAYER1, self.PLAYER2, players)
-                self.draw(self.PLAYER1, self.player2, players)
-            else:
-                self.update(self.PLAYER1 ,self.PLAYER2, players)
-                self.draw(self.PLAYER1, self.PLAYER2, players)
+            keys = pygame.key.get_pressed()
+            if not game_over_message:
+                if keys[pygame.K_SPACE]:
+                    paused = True
+                if not paused:
+                    result = self.update(self.PLAYER1, self.PLAYER2, players)
+                    if result:
+                        game_over_message = (
+                            'You completed all levels!' if result == 'won' else 'Game Over!'
+                        )
+
+            self.draw(self.PLAYER1, self.PLAYER2, players)
+
+            if paused:
+                self._draw_center_message('Paused, press UP KEY to continue')
+            elif game_over_message:
+                self._draw_center_message(f'{game_over_message} Press R To Play Again', BIG_FONT)
+
             self.clock.tick(60)
-
+            await asyncio.sleep(0)

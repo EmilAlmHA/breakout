@@ -69,7 +69,8 @@ class Ball(pygame.sprite.Sprite):
         self.speed_x = speed_x
         self.speed_y = speed_y
         self.mask = pygame.mask.from_surface(self.image)
-        self.bounce_sound = pygame.mixer.Sound('boing.wav')  # Load sound once
+        self.bounce_sound = pygame.mixer.Sound('boing.ogg')  # Load sound once
+        self.bounce_sound.set_volume(0.4)
 
     def move(self, paddle1, paddle2, objects_group):
         self.rect.x += self.speed_x
