@@ -60,10 +60,12 @@ class Game:
 
         self.background = pygame.image.load("fire.png").convert()
         self.brick_sound = pygame.mixer.Sound('bricks.ogg')
+        self.brick_sound.set_volume(0.4)
         self.bounce_sound = pygame.mixer.Sound('boing.ogg')
+        self.bounce_sound.set_volume(0.4)
         self.music = 'Pixel-Peeker-Polka.ogg'
         pygame.mixer.music.load(self.music)
-        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.set_volume(0.25)
         pygame.mixer.music.play(-1)
 
     def load_map(self, template):
@@ -268,7 +270,7 @@ class Game:
                 ball.speed_x += random.uniform(0.2, 0.8)  # Add some randomness to the bounce
                 ball.speed_y += random.uniform(-0.8, -0.2)
                 if not pygame.mixer.Channel(1).get_busy():
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('boing.ogg'), maxtime=600)
+                    _bounce = pygame.mixer.Sound('boing.ogg'); _bounce.set_volume(0.4); pygame.mixer.Channel(1).play(_bounce, maxtime=600)
 
             collided_objects = pygame.sprite.spritecollide(ball, self.objects_group, False, pygame.sprite.collide_mask)
             for block in collided_objects:
